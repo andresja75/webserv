@@ -1,0 +1,1 @@
+std::string executeCgi(const Request &request, const std::string &cgiBinPath, std::string file_content);
