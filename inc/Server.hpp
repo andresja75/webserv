@@ -10,8 +10,9 @@
 #include <arpa/inet.h>
 #include <sys/poll.h>
 #include <unistd.h>
-#include "Request.hpp"
-#include "Response.hpp"
+# include <vector>
+//#include "Request.hpp"
+//#include "Response.hpp"
 // #include "MimeTypes.hpp"
 // #include "Route.hpp"
 #include "Listener.hpp"
@@ -35,9 +36,9 @@ private:
 	std::map<int, struct sockaddr_in> client_addresses;
 
 	std::string root_path;
-	std::map<std::string, Route> routes;
+	//std::map<std::string, Route> routes;
 
-	Response handle_request(Request buffer);
+	//Response handle_request(Request buffer);
 
 public:
 
@@ -57,13 +58,13 @@ public:
 
 	std::string getErrorPage(int status);
 
-	void init();
+//	void init();
 
 	void initDefaultErrorPages();
 
 	//Response getResponse(const std::string &bufferstr, int client);
 
-	void addRoute(const Route &route);
+	//void addRoute(const Route &route);
 
 	void setErrorPage(int status, const std::string& path);
 
@@ -79,7 +80,7 @@ public:
 
 	//Response handle_put(const Request& request, const std::string& path);
 
-	std::string getCgiPath(const std::string &file_path);
+	//std::string getCgiPath(const std::string &file_path);
 };
 
 #endif //SERVER_HPP

@@ -1,3 +1,4 @@
+#include <string>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -6,14 +7,16 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include "Request.hpp"
-#include "Logger.hpp"
-class Request;
+# include "../inc/util.hpp"
+//#include "Request.hpp"
+//#include "Logger.hpp"
+//class Request;
 #define CGI_BUFSIZE 20
 #define CGI_TIMELIMIT 30
 
-static bool timeout = false;
+//static bool timeout = false;
 
+/*
 static void handle_alarm_signal(int signal) {
     if (signal == SIGALRM) {
         kill(0, SIGQUIT);
@@ -33,7 +36,8 @@ static void setup_timer(long seconds) {
     timer.it_interval.tv_usec = 0;
     setitimer(ITIMER_REAL, &timer, NULL);
 }
-
+*/
+/*
 std::string util::executeCgi(const Request &request, const std::string &cgiBinPath, std::string file_content) {
     // TODO: hacer algo como esto https://github.com/cclaude42/webserv/blob/master/srcs/cgi/CgiHandler.cpp
     std::string x_header = "HTTP_X_SECRET_HEADER_FOR_TEST=" + request.getHeader("X-Secret-Header-For-Test");
@@ -113,4 +117,11 @@ std::string util::executeCgi(const Request &request, const std::string &cgiBinPa
     std::remove("cgiOutput");
 
     return (newBody.str());
+}
+*/
+ssize_t stoi(std::string content_length)
+{
+	(void)content_length;
+
+	return 10;
 }

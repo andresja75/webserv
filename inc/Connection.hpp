@@ -1,7 +1,9 @@
 #ifndef CONNECTION_HPP
 # define CONNECTION_HPP
 
+# include <string.h>
 # include <string>
+# include <unistd.h>
 # include <map>
 # include <sys/socket.h>
 # include <arpa/inet.h>
@@ -9,7 +11,7 @@
 // # include "Logger.hpp"
 
 # define READ_BUFFER_SIZE 65536
-
+# define MAX_CONNECTION 1024
 class Connection
 {
 public:
@@ -27,6 +29,7 @@ private:
     bool finish_request;
 
 public:
+	int index;
     int getSocket() const;
     const std::string &getRequest();
     const std::string &getResponse();
