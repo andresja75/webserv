@@ -16,7 +16,7 @@ void Webserver::run()
 
 #include <sys/fcntl.h>
 #include <sys/stat.h>
-#include "Server.hpp"
+#include "../inc/Server.hpp"
 
 
 Server::Server() {
@@ -127,6 +127,7 @@ int Server::run() {
 			if (idx >= 0 && fds[idx].revents & POLLIN) {
 				// If the request is fully received
 				if (connectIt->recv() == 0) {
+					//Response response(400);
 					//Response response = getResponse(connectIt->getRequest(), 0);   // TODO siempre se pasa 0, para que el address?
 					//connectIt->setResponse(response.toString());
 					//logger.log("Response: " + response.getStatusString(), 9);

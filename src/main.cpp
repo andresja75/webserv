@@ -1,9 +1,15 @@
 
 #include <iostream>
 
+#include "../inc/Server.hpp"
+
 int main(void)
 {
-	std::cout<<"hello world!"<<std::endl;
-
+	Server s;
+	
+	while(s.run() == 0)
+	{
+		
+	}
 	return 0;
 }
