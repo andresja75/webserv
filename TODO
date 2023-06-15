@@ -1,3 +1,4 @@
-1. make stoi function
-2. make a logger class
-3. make a Request class
+1. make a logger class
+2. make a Request class
+3. make a Response class
+4. check method, and protocol version when request is made

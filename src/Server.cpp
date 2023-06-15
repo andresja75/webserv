@@ -128,7 +128,8 @@ int Server::run() {
 				// If the request is fully received
 				if (connectIt->recv() == 0) {
 					//Response response(400);
-					//Response response = getResponse(connectIt->getRequest(), 0);   // TODO siempre se pasa 0, para que el address?
+					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
+					(void) response;
 					//connectIt->setResponse(response.toString());
 					//logger.log("Response: " + response.getStatusString(), 9);
 				}
@@ -245,40 +246,48 @@ int Server::run() {
 }
 */
 
-/*
-Response Server::getResponse(const std::string &bufferstr, int client) {
+
+Response Server::getResponse(const std::string &bufferstr) {
 
 	Response response;
 	if (bufferstr.empty()) {
-		response = Response(400);
+		//response = Response(400);
 		// logger.error("Empty request");
 	} else if (bufferstr.find('\r') == std::string::npos) {
-		response = Response(400);
+		//response = Response(400);
 		// logger.error("Invalid request");
 	} else {
-		Request request(bufferstr, client_addresses[client]);
+
 		try {
-			response = handle_request(request);
-		} catch (std::exception &e) {
+			Request request(bufferstr);
+			//response = handle_request(request);
+		} 
+		catch(Request::RequestException &e)
+		{	
 			// logger.error("Exception while handling request: " +
 						//  std::string(e.what()));
-			response = Response(500);
+			//response = Response(400);
+		}
+		catch (std::exception &e) {
+			// logger.error("Exception while handling request: " +
+						//  std::string(e.what()));
+			//response = Response(500);
 		}
 	}
 
-	if (response.getStatus() >= 400) {
+	/*if (response.getStatus() >= 400) {
 		response.setBody(getErrorPage(response.getStatus()));
 		response.addHeader("Content-Length",
 						   util::to_string(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
-	}
+	}*/
 
 	// logger.debug("Response raw: " + response.toString());
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
 
 	return response;
 }
-
+/*
 Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);

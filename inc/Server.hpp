@@ -11,8 +11,8 @@
 #include <sys/poll.h>
 #include <unistd.h>
 # include <vector>
-//#include "Request.hpp"
-//#include "Response.hpp"
+#include "request/Request.hpp"
+#include "response/Response.hpp"
 // #include "MimeTypes.hpp"
 // #include "Route.hpp"
 #include "Listener.hpp"
@@ -62,7 +62,7 @@ public:
 
 	void initDefaultErrorPages();
 
-	//Response getResponse(const std::string &bufferstr, int client);
+	Response getResponse(const std::string &bufferstr);
 
 	//void addRoute(const Route &route);
 
