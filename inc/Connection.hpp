@@ -8,10 +8,9 @@
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include "util.hpp"
-// # include "Logger.hpp"
 
-# define READ_BUFFER_SIZE 65536
-# define MAX_CONNECTION 1024
+# define READ_BUFFER_SIZE 1024
+
 class Connection
 {
 public:

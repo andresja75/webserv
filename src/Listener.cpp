@@ -12,12 +12,12 @@ Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog) 
 
     _socket = socket(AF_INET, SOCK_STREAM, 0);
     if (_socket < 0) {
-        //logger.error("Failed to create socket");
+        logger.error("Failed to create socket");
         return;
     }
 
     if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt))) {
-        //logger.error("Failed to set socket options");
+        logger.error("Failed to set socket options");
         return;
     }
 
@@ -26,17 +26,17 @@ Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog) 
     server_addr.sin_port = htons(port);
 
     if (bind(_socket, (SA*)&server_addr, sizeof(server_addr)) < 0) {
-        //logger.error("Failed to bind socket");
+        logger.error("Failed to bind socket");
         return; // TODO what happens when an error. return?
     }
     if (listen(_socket, _backlog) < 0) {
-        //logger.error("Failed to listen on socket");
+        logger.error("Failed to listen on socket");
         return;
     }
 
     int flags = fcntl(_socket, F_SETFL, fcntl(_socket, F_GETFL) | O_NONBLOCK);
     if (flags < 0) {
-        //logger.error("Failed to set socket to non-blocking");
+        logger.error("Failed to set socket to non-blocking");
         return;
     }
 
