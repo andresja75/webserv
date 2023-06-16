@@ -128,6 +128,7 @@ int Server::run() {
 				// If the request is fully received
 				if (connectIt->recv() == 0) {
 					//Response response(400);
+					
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
 					(void) response;
 					//connectIt->setResponse(response.toString());
@@ -259,6 +260,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 	} else {
 
 		try {
+
 			Request request(bufferstr);
 			//response = handle_request(request);
 		} 
