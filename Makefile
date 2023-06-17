@@ -6,9 +6,10 @@ SRC_DIR = ./src
 OBJ_DIR = ./obj
 INCLUDES = $(INC_DIR)/Listener.hpp $(INC_DIR)/Connection.hpp \
 			$(INC_DIR)/Server.hpp $(INC_DIR)/util.hpp \
-			$(INC_DIR)/request/Request.hpp
+			$(INC_DIR)/request/Request.hpp \
+			$(INC_DIR)/response/Response.hpp
 SRCS = main.cpp Connection.cpp Listener.cpp Server.cpp util.cpp \
-	   request/Request.cpp
+	   request/Request.cpp response/Response.cpp
 
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 NAME = webserv
