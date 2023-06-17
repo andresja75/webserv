@@ -4,15 +4,14 @@ Config::Config() {}
 
 Config::Config(const char *path) {
     read_file_lines(path);
-    parse_key_values();
 }
 
 Config::Config(std::string values) {
     if (values.find(":") == std::string::npos)
         _value = values;
     else {
-        _lines = split_lines(values);
-        parse_key_values();
+        t_lines lines = split_lines(values);
+        parse_key_values(lines);
     }
 }
 
@@ -23,10 +22,12 @@ Config::Config(std::string key, Config config) {
 void Config::read_file_lines(const char *path) {
     std::ifstream infile(path);
 	std::string line;
+	t_lines lines;
 
 	while (std::getline(infile, line)) {
-		_lines.push_back(line);
+		lines.push_back(line);
 	}
+	parse_key_values(lines);
 }
 
 t_lines Config::split_lines(std::string str, std::string delim) {
@@ -53,11 +54,11 @@ void Config::insert_config(std::string key, std::string value) {
 	_config[key].insert_config("1", value);
 }
 
-void Config::parse_key_values() {
+void Config::parse_key_values(t_lines &lines) {
 	std::string key, value, identation;
 	size_t start, end;
 
-	for (t_lines::iterator line = _lines.begin(); line != _lines.end(); line++) {
+	for (t_lines::iterator line = lines.begin(); line != lines.end(); line++) {
 		end = 0;
 		if (line->size() == 0 && key.size() == 0)
 			continue;

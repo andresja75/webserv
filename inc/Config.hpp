@@ -24,13 +24,12 @@ private:
     Config(std::string key, Config config);
 
     t_config _config;
-    t_lines _lines;
     std::string _value;
 
     void read_file_lines(const char *path);
     t_lines split_lines(std::string str, std::string delim="\n");
     void insert_config(std::string key, std::string value);
-    void parse_key_values();
+    void parse_key_values(t_lines &lines);
     Config *get_config(std::string key);
 
 public:

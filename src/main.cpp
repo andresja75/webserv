@@ -6,8 +6,9 @@
 
 int main(void)
 {
+	Config config;
 	try {
-		Config config("config.yaml");
+		config = Config("config.yaml");
 	} catch (const char *message) {
 		logger.error(message);
 		return -1;
