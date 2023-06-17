@@ -4,13 +4,12 @@
 
 #include <string>
 #include <sys/socket.h>
-// #include "macros.hpp"
-#include "Logger.hpp"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/poll.h>
 #include <unistd.h>
 # include <vector>
+#include "Logger.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 // #include "MimeTypes.hpp"
@@ -27,10 +26,6 @@ private:
 	std::vector<Listener> listeners;
 	std::vector<Connection> connections;
 	std::string name;
-
-	fd_set rfds;
-	fd_set wfds;
-	fd_set efds;
 
 	std::map<int, struct sockaddr_in> client_addresses;
 
