@@ -57,7 +57,7 @@ public:
 
 	std::string getErrorPage(int status);
 
-//	void init();
+	void init();
 
 	void initDefaultErrorPages();
 

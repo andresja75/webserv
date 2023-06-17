@@ -39,16 +39,17 @@ Server::Server(const std::vector<std::pair<std::string, int> > &listen,
 	//init();
 }
 
-/*void Server::init() {
+void Server::init() {
 
-	initDefaultErrorPages();
+	Response::init();
+	//initDefaultErrorPages();
 
 	// logger.debug("Creating server");
 
 	// Listen on a given port and address for incoming connections.
 	// This must not block, so we need to use a non-blocking socket.
 	// We can use run() to wait for incoming connections.
-}*/
+}
 
 /*
 También lo hice con poll en lugar de select
@@ -129,6 +130,7 @@ int Server::run() {
 				// If the request is fully received
 				if (r_recv == 0) {
 					//Response response(400);
+					
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
 					(void) response;
 					//connectIt->setResponse(response.toString());
@@ -163,24 +165,30 @@ int Server::run() {
 
 Response Server::getResponse(const std::string &bufferstr) {
 
-	Response response;
+	Response response(401);
 	if (bufferstr.empty()) {
-		//response = Response(400);
+		response = Response(400);
 		// logger.error("Empty request");
 	} else if (bufferstr.find('\r') == std::string::npos) {
-		//response = Response(400);
+		response = Response(400);
 		// logger.error("Invalid request");
 	} else {
 
 		try {
+
 			Request request(bufferstr);
+			response.addHeader("Content-Type", "text/css");
+			response.addHeader("Transfer-Encoding", "chunked");
+			response.addHeader("Host", " 127.0.0.1");
+			response.addHeader("Connection", " keep-alive");
+			response.showHeaders();
 			//response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)
 		{	
 			// logger.error("Exception while handling request: " +
 						//  std::string(e.what()));
-			//response = Response(400);
+			response = Response(400);
 		}
 		catch (std::exception &e) {
 			// logger.error("Exception while handling request: " +
@@ -189,12 +197,12 @@ Response Server::getResponse(const std::string &bufferstr) {
 		}
 	}
 
-	/*if (response.getStatus() >= 400) {
-		response.setBody(getErrorPage(response.getStatus()));
+	if (response.getStatusCode() >= 400) {
+		//response.setBody(getErrorPage(response.getStatusCode()));
 		response.addHeader("Content-Length",
-						   util::to_string(response.getBody().size()));
+						   std::to_string(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
-	}*/
+	}
 
 	// logger.debug("Response raw: " + response.toString());
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
@@ -274,6 +282,7 @@ void Server::setRootPath(const std::string &rootPath) {
     }
 	root_path = rootPath;
 }
+
 */
 /*
 void Server::addRoute(const Route& route) {
