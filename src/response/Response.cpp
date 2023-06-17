@@ -190,6 +190,12 @@ std::string Response::getProtocolVersion(void) const
 	return this->_protocol_version;
 }
 
+//This method returns body of response
+std::string Response::getBody(void) const
+{
+	return this->_body;
+}
+
 //This method returns body length like an unsigned int 
 unsigned int Response::getBodyLength(void) const
 {

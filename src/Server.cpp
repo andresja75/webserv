@@ -134,7 +134,7 @@ int Server::run() {
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
 					(void) response;
 					//connectIt->setResponse(response.toString());
-					//logger.log("Response: " + response.getStatusString(), 9);
+					logger.log("Response: " + std::to_string(response.getStatusCode()));
 				}
 				// If an error in read
 				if (r_recv < 0) {
@@ -177,11 +177,6 @@ Response Server::getResponse(const std::string &bufferstr) {
 		try {
 
 			Request request(bufferstr);
-			response.addHeader("Content-Type", "text/css");
-			response.addHeader("Transfer-Encoding", "chunked");
-			response.addHeader("Host", " 127.0.0.1");
-			response.addHeader("Connection", " keep-alive");
-			response.showHeaders();
 			//response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)
