@@ -1,6 +1,7 @@
 
 #include <iostream>
 
+#include "../inc/Cluster.hpp"
 #include "../inc/Config.hpp"
 #include "../inc/Server.hpp"
 
@@ -14,21 +15,11 @@ int main(void)
 		return -1;
 	}
 
-	// std::cout << "mroot: " << config.get("server.0.root") << std::endl;
-	// std::cout << "mroot: " << config.get("server.1.root") << std::endl;
-	// std::cout << "mlisten.0.host: " << config.get("server.0.listen.1.host") << std::endl;
-	// std::cout << "mlisten.0.port: " << config.get("server.0.listen.1.port") << std::endl;
+	Cluster cluster(config);
+	if (cluster.init())
+		return -2;
 
-	// std::cout << "size 'listen': " << config.key_size("server.0.listen") << std::endl;
-	// t_lines lines = config.get_keys("server.0");
-	// for (size_t i = 0; i < lines.size(); i++)
-	// 	std::cout << "key: " << lines[i] << std::endl;
+	cluster.run();
 
-	Server s;
-	
-	while(s.run() == 0)
-	{
-		
-	}
 	return 0;
 }
