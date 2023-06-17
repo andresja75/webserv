@@ -11,6 +11,7 @@ private:
     bool _debug;
 
 public:
+    void set_debug(bool debug);
     void log(const std::string message);
     void debug(const std::string message);
     void error(const std::string message);

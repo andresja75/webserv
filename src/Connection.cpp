@@ -69,7 +69,7 @@ bool Connection::completeRequest() {
 				return (finish_request = true, true);
 		}
 
-		ssize_t	len = ::stoi(_request.substr(_request.find("Content-Length: ") + 16,  10));
+		ssize_t	len = util::stoi(_request.substr(_request.find("Content-Length: ") + 16,  10));
 		std::cout<<"len: "<<len<<std::endl;
 		if (_request.size() >= len + i + 4)
 			return (finish_request = true, true);

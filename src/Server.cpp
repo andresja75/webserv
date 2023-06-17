@@ -1,23 +1,6 @@
-/*
-La clase Server no es totalmente mía, pero sí el run(), el put y el post y algunas cosas más.
-La clase Webserver tiene un vector de Servers y tiene este método que es el bucle principal:
-
-void Webserver::run()
-{
-	logger.debug("Running webserver");
-
-	while (true) {
-		for (std::vector<Server *>::iterator it = this->servers.begin(); it != this->servers.end(); it++) {
-			(*it)->run();
-		}
-	}
-}
-*/
-
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include "../inc/Server.hpp"
-
 
 Server::Server() {
 	this->listeners.push_back(Listener("0.0.0.0", 80));
@@ -29,12 +12,21 @@ Server::~Server() {
 
 }
 
-
-Server::Server(const std::vector<std::pair<std::string, int> > &listen,
-			   const std::string &name) {
-	this->name = name;
-	for (int i = 0; i < (int) listen.size() && i < 1024; i++) {
-		listeners.push_back(Listener(listen[i].first, listen[i].second));
+Server::Server(Config *config) {
+	std::string name = config->get("name");
+	this->name = name.size() ? name : "Server";
+	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
+		try {
+			Listener listener(
+				config->get("listen." + util::itos(i) + ".host"),
+				util::stoi(config->get("listen." + util::itos(i) + ".port"))
+			);
+			listeners.push_back(listener);
+			logger.log("Listen on " + config->get("listen." + util::itos(i) + ".host")
+				+ ":" + config->get("listen." + util::itos(i) + ".port"));
+		} catch (const char *message) {
+			logger.error("Cannot init server " + name + ". " + message);
+		}
 	}
 	//init();
 }
@@ -45,15 +37,8 @@ void Server::init() {
 	//initDefaultErrorPages();
 
 	// logger.debug("Creating server");
-
-	// Listen on a given port and address for incoming connections.
-	// This must not block, so we need to use a non-blocking socket.
-	// We can use run() to wait for incoming connections.
 }
 
-/*
-También lo hice con poll en lugar de select
-*/
 int Server::run() {
 	struct pollfd fds[MAX_CONNECTION + 1];
 	int nfds = 0;
@@ -96,14 +81,13 @@ int Server::run() {
 					logger.error("Failed to accept connection");
 					return -1;
 				}
-				client_addresses[new_socket] = listeners[n].getClientAddress();
 				logger.debug("Accepted connection");
 				int flags = fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL) | O_NONBLOCK);
 				if (flags < 0) {
 					logger.error("Failed to set socket to non-blocking");
 					return -1;
 				}
-				connections.push_back(Connection(new_socket));
+				connections.push_back(Connection(new_socket, listeners[n].getClientAddress()));
 			}
 		}
 

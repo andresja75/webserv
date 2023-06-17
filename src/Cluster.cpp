@@ -16,6 +16,9 @@ void Cluster::run() {
 int Cluster::init() {
     logger.debug("Init Cluster");
 
-    _servers.push_back(Server());
+    for (size_t i = 0; i < _config.key_size("server"); i++) {
+        Server server(_config.get_config("server." + util::itos(i)));
+        _servers.push_back(server);
+    }
     return 0;
 }

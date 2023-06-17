@@ -121,7 +121,7 @@ std::string util::executeCgi(const Request &request, const std::string &cgiBinPa
     return (newBody.str());
 }
 */
-ssize_t stoi(std::string content_length)
+ssize_t util::stoi(std::string content_length)
 {
 	unsigned long pos;
 	int len = 0;
@@ -153,7 +153,7 @@ ssize_t stoi(std::string content_length)
 	return len;
 }
 
-std::string itos(int n) {
+std::string util::itos(int n) {
     std::stringstream ss;
     ss << n;
     return ss.str();
