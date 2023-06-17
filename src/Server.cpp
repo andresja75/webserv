@@ -84,7 +84,7 @@ int Server::run() {
 	// if (retval == 0)
 	// 	std::cout << "TIMEOUT" << std::endl;
 	if (retval == -1) {
-		//logger.error("Error while waiting for socket");
+		logger.error("Error while waiting for socket");
 		return -1;
 	}
 	if (retval) {
@@ -93,14 +93,14 @@ int Server::run() {
 			if (fds[n].revents & POLLIN && nfds < MAX_CONNECTION + 1) {
 				int new_socket;
 				if ((new_socket = listeners[n].newConnection()) < 0) {
-					//logger.error("Failed to accept connection");
+					logger.error("Failed to accept connection");
 					return -1;
 				}
 				client_addresses[new_socket] = listeners[n].getClientAddress();
-				//logger.debug("Accepted connection");
+				logger.debug("Accepted connection");
 				int flags = fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL) | O_NONBLOCK);
 				if (flags < 0) {
-					//logger.error("Failed to set socket to non-blocking");
+					logger.error("Failed to set socket to non-blocking");
 					return -1;
 				}
 				connections.push_back(Connection(new_socket));
@@ -126,8 +126,9 @@ int Server::run() {
 			}
 
 			if (idx >= 0 && fds[idx].revents & POLLIN) {
+				ssize_t r_recv = connectIt->recv();
 				// If the request is fully received
-				if (connectIt->recv() == 0) {
+				if (r_recv == 0) {
 					//Response response(400);
 					
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
@@ -135,100 +136,14 @@ int Server::run() {
 					//connectIt->setResponse(response.toString());
 					//logger.log("Response: " + response.getStatusString(), 9);
 				}
-			}
-
-			if (idx >= 0 && fds[idx].revents & POLLOUT) {
-				// If the response is fully send
-				if (connectIt->send() == 0) {
-					usleep(2100);
-					connections.erase(connectIt);
-					break;
-				}
-			}
-		}
-	}
-	return 0;
-}
-/*
-Quitar si no se usa !!!!
-int Server::run() {
-	FD_ZERO(&rfds);
-	FD_ZERO(&wfds);
-	int maxfd = 0;
-	// Add sockets of the servers
-	for (int n = 0; n < (int) listeners.size() && n < 1024; n++) {
-		int socket = listeners[n].getSocket();
-		FD_SET(socket, &rfds);
-		if (socket > maxfd) {
-			maxfd = socket;
-		}
-	}
-	// Add open connections
-	std::vector<Connection>::iterator connectIt = connections.begin();
-	for (; connectIt != connections.end(); connectIt++) {
-		int client = connectIt->getSocket();
-		if (connectIt->isFinishRequest())
-			FD_SET(client, &wfds);
-		else
-			FD_SET(client, &rfds);
-		if (client > maxfd) {
-			maxfd = client;
-		}
-	}
-
-	struct timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = 100000;
-	int retval = select(maxfd + 1, &rfds, &wfds, NULL, &tv);
-	if (retval == -1) {
-		// logger.error("Error while waiting for socket");
-		return -1;
-	}
-	if (retval) {
-		// Check servers connections
-		for (int n = 0; n < (int) listeners.size() && n < 1024; n++) {
-			int socket = listeners[n].getSocket();
-			if (FD_ISSET(socket, &rfds)) {
-				int new_socket;
-				if ((new_socket = listeners[n].newConnection()) < 0) {
-					// logger.error("Failed to accept connection");
-					return -1;
-				}
-				client_addresses[new_socket] = listeners[n].getClientAddress();
-				// logger.debug("Accepted connection");
-				int flags = fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL) | O_NONBLOCK);
-				if (flags < 0) {
-					// logger.error("Failed to set socket to non-blocking");
-					return -1;
-				}
-				connections.push_back(Connection(new_socket));
-				if (new_socket > maxfd) {
-					maxfd = new_socket;
-				}
-			}
-		}
-
-		// Check open connections
-		connectIt = connections.begin();
-		for (; connectIt != connections.end(); connectIt++) {
-			int client = connectIt->getSocket();
-
-			if (FD_ISSET(client, &rfds)) {
-				ssize_t r_recv = connectIt->recv();
-				// If the request is fully received
-				if (r_recv == 0) {
-					Response response = getResponse(connectIt->getRequest(), 0);   // TODO siempre se pasa 0, para que el address?
-					connectIt->setResponse(response.toString());
-					// logger.log("Response: " + response.getStatusString(), 9);
-				}
 				// If an error in read
 				if (r_recv < 0) {
 					connections.erase(connectIt);
-					// logger.error("Failed to read on socket");
+					logger.error("Failed to read on socket");
 				}
 			}
 
-			if (FD_ISSET(client, &wfds)) {
+			if (idx >= 0 && fds[idx].revents & POLLOUT) {
 				ssize_t r_send = connectIt->send();
 				// If the response is fully send
 				if (r_send == 0) {
@@ -239,15 +154,14 @@ int Server::run() {
 				// If error in write
 				if (r_send < 0) {
 					connections.erase(connectIt);
-					// logger.error("Failed to write on socket");
+					logger.error("Failed to write on socket");
+					break;
 				}
 			}
 		}
 	}
 	return 0;
 }
-*/
-
 
 Response Server::getResponse(const std::string &bufferstr) {
 

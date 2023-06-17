@@ -5,7 +5,7 @@
 #include <string>
 #include <sys/socket.h>
 // #include "macros.hpp"
-// #include "Logger.hpp"
+#include "Logger.hpp"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/poll.h>
@@ -19,7 +19,7 @@
 #include "Connection.hpp"
 #include "util.hpp"
 
-#define BUFFER_SIZE 1024 // TODO use only in Connection
+#define MAX_CONNECTION 1024
 
 class Server {
 
@@ -27,7 +27,6 @@ private:
 	std::vector<Listener> listeners;
 	std::vector<Connection> connections;
 	std::string name;
-//	Logger logger;
 
 	fd_set rfds;
 	fd_set wfds;
@@ -70,8 +69,6 @@ public:
 
 	void setIndex(const std::string& index);
 
-	// Logger &getLogger();
-
 	//Response handle_get(const Request& request, const std::string& path);
 
 	//Response handle_post(const Request& request, const std::string& path);
@@ -83,4 +80,4 @@ public:
 	//std::string getCgiPath(const std::string &file_path);
 };
 
-#endif //SERVER_HPP
+#endif
