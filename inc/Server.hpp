@@ -17,6 +17,7 @@
 #include "Listener.hpp"
 #include "Connection.hpp"
 #include "util.hpp"
+#include "Location.hpp"
 
 #define MAX_CONNECTION 1024
 
@@ -25,6 +26,7 @@ class Server {
 private:
 	std::vector<Listener> listeners;
 	std::vector<Connection> connections;
+	std::vector<Location *> _locations;
 	std::string name;
 
 	std::map<int, struct sockaddr_in> client_addresses;
@@ -32,7 +34,7 @@ private:
 	std::string root_path;
 	//std::map<std::string, Route> routes;
 
-	//Response handle_request(Request buffer);
+	Response handle_request(Request buffer);
 
 public:
 
@@ -64,7 +66,7 @@ public:
 
 	void setIndex(const std::string& index);
 
-	//Response handle_get(const Request& request, const std::string& path);
+	Response handle_get(const Request& request);
 
 	//Response handle_post(const Request& request, const std::string& path);
 
@@ -76,3 +78,5 @@ public:
 };
 
 #endif
+
+

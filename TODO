@@ -1,4 +1,3 @@
-1. make a logger class
-2. make a Request class
-3. make a Response class
-4. check method, and protocol version when request is made
+1. make a getResourceDirectoryMethod in request class
+2. make a toString in Response classs
+

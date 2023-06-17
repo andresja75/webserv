@@ -20,13 +20,23 @@ void Webserver::run()
 
 
 Server::Server() {
+
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
+
+	Location *l = new Location("/www");
+	l->setRoot("www/");
+	l->addIndex("index.html");
+	this->_locations.push_back(l);
 //	init();
 }
 
 Server::~Server() {
-
+	for(std::vector<Location *>::iterator it = this->_locations.begin(); 
+			it != this->_locations.end(); it++)
+	{
+		delete (*it);
+	}
 }
 
 
@@ -177,7 +187,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 		try {
 
 			Request request(bufferstr);
-			//response = handle_request(request);
+			response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)
 		{	
@@ -204,33 +214,32 @@ Response Server::getResponse(const std::string &bufferstr) {
 
 	return response;
 }
-/*
 Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
 
 	Response response;
-	std::string path = request.getPath();
 	if (request.getMethod() == "GET") {
-		response = handle_get(request, path);
-	} else if (request.getMethod() == "POST") {
+		response = handle_get(request);
+	} /*else if (request.getMethod() == "POST") {
 		response = handle_post(request, path);
 	} else if (request.getMethod() == "DELETE") {
 		response = handle_delete(request, path);
 	} else if (request.getMethod() == "PUT") {
 		response = handle_put(request, path);
-	} else {
-		response.setStatus(405);
+	} */else {
+		response.setStatusCode(405);
 	}
 
 
 	response.addHeader("Connection", "close");
 	response.addHeader("Server", "webserver");
-	response.addHeader("Date", util::datetime("%a, %d %b %Y %H:%M:%S %Z"));
+	//response.addHeader("Date", util::datetime("%a, %d %b %Y %H:%M:%S %Z"));
 
 	return response;
 }
 
+/*
 std::string Server::getErrorPage(int status) {
 	return this->routes["*"].getErrorPage(status);
 }
@@ -291,13 +300,21 @@ void Server::setErrorPage(int status, const std::string& path) {
 void Server::setIndex(const std::string& index) {
 	this->routes["*"].setIndex(index);
 }
+*/
 
-Response Server::handle_get(const Request& request, const std::string& path) {
+Response Server::handle_get(const Request& request) {
 	Response response;
-	UNUSED(request);
 
-	std::string file_path = util::combine_path(getRootPath(), path, true);
+	std::string file_path = request.getPath();
+	std::cout<<"complete: "<<file_path<<std::endl;
+	for(std::vector<Location *>::iterator it = this->_locations.begin(); 
+			it == this->_locations.end(); it++)
+	{
+		if((*it)->getLocation() == request.getResource())
+			break;
+	}
 	// logger.debug("File path: " + file_path);
+	/*
 	if (file_path.find(getRootPath()) != 0) {
 		// logger.error("Invalid path");
 		return Response(403);
@@ -337,10 +354,10 @@ Response Server::handle_get(const Request& request, const std::string& path) {
 
 	std::string content_type = MimeTypes::getType(file_path);
 	response.addHeader("Content-Type", content_type);
-
+*/
 	return response;
 }
-
+/*
 Response Server::handle_post(const Request& request, const std::string& path) {
 	// TODO hardcodeo la configuracion para el tester
 	if (request.getPath().find("post_body") != std::string::npos) {
