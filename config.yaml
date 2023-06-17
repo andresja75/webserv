@@ -1,3 +1,13 @@
 server:
-  root: webs/YoupiBanane
+  root: path/YoupiBanane
   name: serverOne
+  listen:
+    host: localhost
+    port: 8080
+  listen:
+    host: 0.0.0.0
+    port: 7070
+
+server:
+  root: path/jklse
+  name: serverTwo

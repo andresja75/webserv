@@ -6,7 +6,7 @@
 # include <string>
 # include <vector>
 # include <utility>
-# include "Logger.hpp"
+# include "util.hpp"
 
 # define DELIM "."
 
@@ -16,21 +16,55 @@ typedef std::map<std::string, Config> t_config;
 
 class Config {
 public:
-    Config(const char *path);
-    Config(std::string values);
+    Config();
+    Config(const char *path); // path: The path of a config file
 
 private:
-    Config();
+    Config(std::string values);
+    Config(std::string key, Config config);
+
     t_config _config;
     t_lines _lines;
     std::string _value;
 
     void read_file_lines(const char *path);
     t_lines split_lines(std::string str, std::string delim="\n");
+    void insert_config(std::string key, std::string value);
     void parse_key_values();
+    Config *get_config(std::string key);
 
 public:
+    /**
+     * Get the value of a key. Use DELIM and indexes for duplicated keys:
+     * config.get("server.0.listen.1.host") => "0.0.0.0"
+    */
     std::string get(std::string key);
+    /**
+     * Return a vector of strings with the keys of that Config:
+     * get_keys("server.0") => ["listen", "name", "root"]
+    */
+    t_lines get_keys(std::string key);
+    /**
+     * Return the number of duplication of the key or 0:
+     * key_size("server.0.listen") => 2
+    */
+    size_t key_size(std::string key);
 };
 
 #endif
+
+/* CONFIG FILE EXAMPLE
+server:
+  root: path/YoupiBanane
+  name: serverOne
+  listen:
+    host: localhost
+    port: 8080
+  listen:
+    host: 0.0.0.0
+    port: 7070
+
+server:
+  root: path/jklse
+  name: serverTwo
+*/

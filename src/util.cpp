@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <iostream>
+#include <sstream>
 # include "../inc/util.hpp"
 //#include "Request.hpp"
 //#include "Logger.hpp"
@@ -150,4 +151,10 @@ ssize_t stoi(std::string content_length)
 	}
 
 	return len;
+}
+
+std::string itos(int n) {
+    std::stringstream ss;
+    ss << n;
+    return ss.str();
 }
