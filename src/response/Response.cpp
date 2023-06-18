@@ -234,7 +234,7 @@ void Response::showHeaders(void)
 //Function to set status code of response
 bool Response::setStatusCode(unsigned int status_code)
 {
-	if(status_code < 0 || status_code >= 600)
+	if(status_code >= 600)
 		return false;
 	this->_status_code = status_code;
 	return true;

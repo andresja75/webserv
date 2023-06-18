@@ -121,36 +121,13 @@ std::string util::executeCgi(const Request &request, const std::string &cgiBinPa
     return (newBody.str());
 }
 */
-ssize_t stoi(std::string content_length)
+int stoi(std::string str)
 {
-	unsigned long pos;
-	int len = 0;
-	
-	pos = content_length.find("\r\n");
-	if(pos != std::string::npos)
-		content_length = content_length.substr(0, pos);
-
-
-	if(content_length.size() == 0)
-		return 0;
-	for(pos = 0; pos < content_length.size(); pos++)
-	{
-		if(!(content_length[pos] >= '0' && content_length[pos] <= '9'))
-			return -1;
-
-	}
-
-	try
-	{
-
-		len = std::stoi(content_length, NULL, 10);	
-	}
-	catch(std::exception &e)
-	{
-		return -1;	
-	}
-
-	return len;
+    int num;
+    std::stringstream ss;
+    ss << str;
+    ss >> num;
+    return num;
 }
 
 std::string itos(int n) {

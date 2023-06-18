@@ -128,7 +128,7 @@ void Request::insert_body(const std::string &body)
 	{
 		try
 		{
-			num_bytes = std::stoi(number_of_bytes);	
+			num_bytes = stoi(number_of_bytes);
 		}
 		catch(std::exception &e)
 		{

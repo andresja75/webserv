@@ -121,9 +121,9 @@ Config *Config::get_config(std::string key) {
     t_config::iterator k = _config.find(subkey);
     if (k == _config.end())
         return NULL;
-	if (rest.size())
-		return k->second.get_config(rest);
-	return &k->second;
+    if (rest.size())
+        return k->second.get_config(rest);
+    return &k->second;
 }
 
 std::string Config::get(std::string key) {

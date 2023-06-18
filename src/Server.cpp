@@ -144,7 +144,7 @@ int Server::run() {
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
 					(void) response;
 					//connectIt->setResponse(response.toString());
-					logger.log("Response: " + std::to_string(response.getStatusCode()));
+					logger.log("Response: " + itos(response.getStatusCode()));
 				}
 				// If an error in read
 				if (r_recv < 0) {
@@ -205,7 +205,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 	if (response.getStatusCode() >= 400) {
 		//response.setBody(getErrorPage(response.getStatusCode()));
 		response.addHeader("Content-Length",
-						   std::to_string(response.getBody().size()));
+						   itos(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
 	}
 
