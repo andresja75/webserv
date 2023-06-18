@@ -126,14 +126,9 @@ void Request::insert_body(const std::string &body)
 	//Checking if it has content-length
 	if(number_of_bytes != "")
 	{
-		try
-		{
-			num_bytes = stoi(number_of_bytes);
-		}
-		catch(std::exception &e)
-		{
-			throw RequestException("Error parsing Content-Length, malformed number");	
-		}
+		num_bytes = util::stoi(number_of_bytes);
+		if (num_bytes == 0)
+			logger.error("Error parsing Content-Length, malformed number");
 		this->_body = body.substr(0, num_bytes);
 	}
 	//Checking if it is transfer-encoding: chunked

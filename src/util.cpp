@@ -121,7 +121,7 @@ std::string util::executeCgi(const Request &request, const std::string &cgiBinPa
     return (newBody.str());
 }
 */
-int stoi(std::string str)
+int util::stoi(std::string str)
 {
     int num;
     std::stringstream ss;

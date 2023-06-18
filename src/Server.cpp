@@ -128,7 +128,7 @@ int Server::run() {
 					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
 					(void) response;
 					//connectIt->setResponse(response.toString());
-					logger.log("Response: " + itos(response.getStatusCode()));
+					logger.log("Response: " + util::itos(response.getStatusCode()));
 				}
 				// If an error in read
 				if (r_recv < 0) {
@@ -189,7 +189,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 	if (response.getStatusCode() >= 400) {
 		//response.setBody(getErrorPage(response.getStatusCode()));
 		response.addHeader("Content-Length",
-						   itos(response.getBody().size()));
+						   util::itos(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
 	}
 
@@ -291,12 +291,13 @@ Response Server::handle_get(const Request& request) {
 
 	std::string file_path = request.getPath();
 	std::cout<<"complete: "<<file_path<<std::endl;
-	for(std::vector<Location *>::iterator it = this->_locations.begin(); 
-			it == this->_locations.end(); it++)
+	for(std::vector<Location *>::iterator it = this->_locations.begin();
+			it != this->_locations.end(); it++)
 	{
 		if((*it)->getLocation() == request.getResource())
 			break;
 	}
+
 	// logger.debug("File path: " + file_path);
 	/*
 	if (file_path.find(getRootPath()) != 0) {
