@@ -1,12 +1,14 @@
 #include "../inc/Connection.hpp"
 #include <iostream>
 
-Connection::Connection(int socket) : _socket(socket), send_pos(0), finish_request(false) {
+Connection::Connection(int socket)
+	: _socket(socket), send_pos(0), finish_request(false), index(-1) {
 	memset(&_address, 0, sizeof(_address));
 }
 
 Connection::Connection(int socket, struct sockaddr_in address)
-	: _socket(socket), _address(address), send_pos(0), finish_request(false) {}
+	: _socket(socket), _address(address), send_pos(0), finish_request(false),
+	index(-1) {}
 
 int Connection::getSocket() const { return _socket; }
 

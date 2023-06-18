@@ -20,6 +20,11 @@ Server::~Server() {
 	{
 		delete (*it);
 	}
+	for(std::vector<Connection *>::iterator it = this->connections.begin();
+			it != this->connections.end(); it++)
+	{
+		delete (*it);
+	}
 }
 
 Server::Server(Config *config) {
@@ -69,111 +74,8 @@ void Server::init() {
 	logger.debug("Server created");
 }
 
-int Server::run() {
-	struct pollfd fds[MAX_CONNECTION + 1];
-	int nfds = 0;
-
-	std::memset(fds, 0, sizeof(fds));
-	// Add sockets of the servers
-	for (int n = 0; n < (int) listeners.size() && n < 1024; n++) {
-		int socket = listeners[n].getSocket();
-		fds[n].fd = socket;
-		fds[n].events = POLLIN;
-		nfds++;
-	}
-	// Add open connections
-	std::vector<Connection>::iterator connectIt = connections.begin();
-	for (; connectIt != connections.end(); connectIt++) {
-		int client = connectIt->getSocket();
-		fds[nfds].fd = client;
-		connectIt->index = nfds;
-		if (connectIt->isFinishRequest())
-			fds[nfds].events = POLLOUT;
-		else
-			fds[nfds].events = POLLIN;
-		nfds++;
-	}
-
-	int timeout = 1 * 1000;
-	int retval = poll(fds, nfds, timeout);
-	// if (retval == 0)
-	// 	std::cout << "TIMEOUT" << std::endl;
-	if (retval == -1) {
-		logger.error("Error while waiting for socket");
-		return -1;
-	}
-	if (retval) {
-		// Check servers connections
-		for (int n = 0; n < (int) listeners.size() && n < 1024; n++) {
-			if (fds[n].revents & POLLIN && nfds < MAX_CONNECTION + 1) {
-				int new_socket;
-				if ((new_socket = listeners[n].newConnection()) < 0) {
-					logger.error("Failed to accept connection");
-					return -1;
-				}
-				logger.debug("Accepted connection");
-				int flags = fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL) | O_NONBLOCK);
-				if (flags < 0) {
-					logger.error("Failed to set socket to non-blocking");
-					return -1;
-				}
-				connections.push_back(Connection(new_socket, listeners[n].getClientAddress()));
-			}
-		}
-
-		// Check open connections
-		connectIt = connections.begin();
-		for (; connectIt != connections.end(); connectIt++) {
-			int idx = connectIt->index;
-
-			// If client closed connection
-			if (idx >= 0 && fds[idx].revents & POLLHUP) {
-				close(connectIt->getSocket());
-				connections.erase(connectIt);
-				break;
-			}
-
-			// If client not open
-			if (idx >= 0 && fds[idx].revents & POLLNVAL) {
-				connections.erase(connectIt);
-				break;
-			}
-
-			if (idx >= 0 && fds[idx].revents & POLLIN) {
-				ssize_t r_recv = connectIt->recv();
-				// If the request is fully received
-				if (r_recv == 0) {
-					Response response = getResponse(connectIt->getRequest());
-					connectIt->setResponse(response.toString());
-					logger.log("Response: " + util::itos(response.getStatusCode()));
-				}
-				// If an error in read
-				if (r_recv < 0) {
-					connections.erase(connectIt);
-					logger.error("Failed to read on socket");
-					break;
-				}
-			}
-
-			if (idx >= 0 && fds[idx].revents & POLLOUT) {
-				ssize_t r_send = connectIt->send();
-				// If the response is fully send
-				if (r_send == 0) {
-					usleep(2100); // Limit for macs. Block too much traffic per second.
-					connections.erase(connectIt);
-					break;
-				}
-				// If error in write
-				if (r_send < 0) {
-					connections.erase(connectIt);
-					logger.error("Failed to write on socket");
-					break;
-				}
-			}
-		}
-	}
-	return 0;
-}
+std::vector<Listener> *Server::getListeners() { return &listeners; }
+std::vector<Connection *> *Server::getConnections() { return &connections; }
 
 Response Server::getResponse(const std::string &bufferstr) {
 

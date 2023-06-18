@@ -10,6 +10,10 @@ private:
 	Config _config;
 	std::vector<Server> _servers;
 
+	int addSocketsToWatch(struct pollfd *fds);
+	int checkListeners(struct pollfd *fds);
+	void checkConnections(struct pollfd *fds);
+
 public:
 	Cluster();
 	Cluster(const Config& config);

@@ -26,7 +26,7 @@ class Server {
 
 private:
 	std::vector<Listener> listeners;
-	std::vector<Connection> connections;
+	std::vector<Connection *> connections;
 	std::vector<Location *> _locations;
 	std::string name;
 
@@ -45,24 +45,20 @@ public:
 	~Server();
 
 	const std::string &getRootPath() const;
+	std::string getErrorPage(int status);
+	Response getResponse(const std::string &bufferstr);
+	std::vector<Listener> *getListeners();
+	std::vector<Connection *> *getConnections();
 
 	void setRootPath(const std::string &rootPath);
-
-	int run();
-
-	std::string getErrorPage(int status);
+	void setErrorPage(int status, const std::string& path);
+	void setIndex(const std::string& index);
 
 	void init();
 
 	std::string defaultErrorPage(Response &response);
 
-	Response getResponse(const std::string &bufferstr);
-
 	//void addRoute(const Route &route);
-
-	void setErrorPage(int status, const std::string& path);
-
-	void setIndex(const std::string& index);
 
 	Response handle_get(const Request& request);
 

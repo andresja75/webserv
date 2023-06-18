@@ -6,7 +6,7 @@ Listener::Listener() {
     Listener(DEFAULT_IP, DEFAULT_PORT, DEFAULT_BACKLOG);
 }
 
-Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog) {
+Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog), index(-1) {
     if (ip.size() == 0 || port == 0)
         throw "Missing listener ip or port";
 
