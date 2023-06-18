@@ -25,20 +25,14 @@ Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog) 
     server_addr.sin_addr.s_addr = inet_addr(ip.c_str());
     server_addr.sin_port = htons(port);
 
-    if (bind(_socket, (SA*)&server_addr, sizeof(server_addr)) < 0) {
-        logger.error("Failed to bind socket");
-        return; // TODO what happens when an error. return?
-    }
-    if (listen(_socket, _backlog) < 0) {
-        logger.error("Failed to listen on socket");
-        return;
-    }
+    if (bind(_socket, (SA*)&server_addr, sizeof(server_addr)) < 0)
+        throw "Failed to bind socket";
+    if (listen(_socket, _backlog) < 0)
+        throw "Failed to listen on socket";
 
     int flags = fcntl(_socket, F_SETFL, fcntl(_socket, F_GETFL) | O_NONBLOCK);
-    if (flags < 0) {
-        logger.error("Failed to set socket to non-blocking");
-        return;
-    }
+    if (flags < 0)
+        throw "Failed to set socket to non-blocking";
 
     _addr_size = sizeof(_client_address);
     memset(&_client_address, 0, _addr_size);

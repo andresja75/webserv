@@ -10,6 +10,7 @@
 #include <unistd.h>
 # include <vector>
 #include "Logger.hpp"
+#include "Config.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 // #include "MimeTypes.hpp"
@@ -29,8 +30,6 @@ private:
 	std::vector<Location *> _locations;
 	std::string name;
 
-	std::map<int, struct sockaddr_in> client_addresses;
-
 	std::string root_path;
 	//std::map<std::string, Route> routes;
 
@@ -41,8 +40,7 @@ public:
 
 	Server();
 
-	Server(const std::vector<std::pair<std::string, int> > &listen,
-		   const std::string &name);
+	Server(Config *config);
 
 	~Server();
 

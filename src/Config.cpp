@@ -21,6 +21,8 @@ Config::Config(std::string key, Config config) {
 
 void Config::read_file_lines(const char *path) {
     std::ifstream infile(path);
+	if (infile.fail())
+		throw "Fail to open config file";
 	std::string line;
 	t_lines lines;
 
@@ -162,7 +164,7 @@ size_t Config::key_size(std::string key) {
 		return 0;
 
 	int i = 0;
-	while (that->_config.find(itos(i)) != that->_config.end())
+	while (that->_config.find(util::itos(i)) != that->_config.end())
 		i++;
 	return i;
 }

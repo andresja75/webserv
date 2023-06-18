@@ -130,7 +130,7 @@ int stoi(std::string str)
     return num;
 }
 
-std::string itos(int n) {
+std::string util::itos(int n) {
     std::stringstream ss;
     ss << n;
     return ss.str();

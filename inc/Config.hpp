@@ -30,7 +30,6 @@ private:
     t_lines split_lines(std::string str, std::string delim="\n");
     void insert_config(std::string key, std::string value);
     void parse_key_values(t_lines &lines);
-    Config *get_config(std::string key);
 
 public:
     /**
@@ -38,6 +37,10 @@ public:
      * config.get("server.0.listen.1.host") => "0.0.0.0"
     */
     std::string get(std::string key);
+    /**
+     * Get the node Config from key.
+    */
+    Config *get_config(std::string key);
     /**
      * Return a vector of strings with the keys of that Config:
      * get_keys("server.0") => ["listen", "name", "root"]
@@ -57,7 +60,7 @@ server:
   root: path/YoupiBanane
   name: serverOne
   listen:
-    host: localhost
+    host: 127.0.0.1
     port: 8080
   listen:
     host: 0.0.0.0
