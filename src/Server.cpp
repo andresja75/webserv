@@ -3,7 +3,7 @@
 #include "../inc/Server.hpp"
 
 Server::Server() {
-
+	logger.debug("Init server");
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
 
@@ -23,10 +23,13 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
+	logger.debug("Init server");
 	if (!config)
 		throw "There is no config for the server";
+
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
+	// Many listeners
 	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
 		try {
 			Listener listener(
@@ -40,8 +43,22 @@ Server::Server(Config *config) {
 			logger.error(message);
 		}
 	}
+	// Only one listener
+	if (config->key_size("listen") == 0) {
+		try {
+			Listener listener(
+				config->get("listen.host"),
+				util::stoi(config->get("listen.port"))
+			);
+			listeners.push_back(listener);
+			logger.log("Listen on " + config->get("listen.host")
+				+ ":" + config->get("listen.port"));
+		} catch (const char *message) {
+			logger.error(message);
+		}
+	}
 	if (listeners.size() == 0)
-		throw "Cannot init server because there are not any listener.";
+		throw "Cannot init server because there is no listener.";
 	init();
 }
 
@@ -49,7 +66,7 @@ void Server::init() {
 
 	//initDefaultErrorPages();
 
-	logger.debug("Creating server");
+	logger.debug("Server created");
 }
 
 int Server::run() {
@@ -134,6 +151,7 @@ int Server::run() {
 				if (r_recv < 0) {
 					connections.erase(connectIt);
 					logger.error("Failed to read on socket");
+					break;
 				}
 			}
 
@@ -282,12 +300,12 @@ Response Server::handle_get(const Request& request) {
 
 	std::string file_path = request.getPath();
 	std::cout<<"complete: "<<file_path<<std::endl;
-	// for(std::vector<Location *>::iterator it = this->_locations.begin();
-	// 		it != this->_locations.end(); it++)
-	// {
-	// 	if((*it)->getLocation() == request.getResource())
-	// 		break;
-	// }
+	for(std::vector<Location *>::iterator it = this->_locations.begin();
+			it != this->_locations.end(); it++)
+	{
+		if((*it)->getLocation() == request.getResource())
+			break;
+	}
 
 	// logger.debug("File path: " + file_path);
 	/*

@@ -11,3 +11,6 @@ server:
 server:
   root: path/jklse
   name: serverTwo
+  listen:
+    host: 127.0.0.1
+    port: 8000

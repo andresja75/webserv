@@ -7,6 +7,9 @@ Listener::Listener() {
 }
 
 Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog) {
+    if (ip.size() == 0 || port == 0)
+        throw "Missing listener ip or port";
+
     SA_IN server_addr;
     int opt = 1;
 
