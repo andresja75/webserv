@@ -7,10 +7,6 @@ Server::Server() {
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
 
-	Location *l = new Location("/www");
-	l->setRoot("www/");
-	l->addIndex("index.html");
-	this->_locations.push_back(l);
 	init();
 }
 
@@ -28,6 +24,26 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
+	
+	/*Borrar despues*/
+	Location *l = new Location("/www");
+	l->setRoot("./www");
+	l->addIndex("index.html");
+	this->_locations.push_back(l);
+	Location *l1 = new Location("/directorio_1");
+	l1->setRoot("./files_1");
+	l1->addIndex("index.html");
+	this->_locations.push_back(l1);
+	Location *l2 = new Location("/directorio_");
+	l2->setRoot("./paginas");
+	l2->addIndex("index.html");
+	this->_locations.push_back(l2);
+	Location *l3 = new Location("/directorio_1/index.html");
+	l3->setRoot("./paginas");
+	l3->addIndex("index.html");
+	this->_locations.push_back(l3);
+	/*-----------------*/
+
 	logger.debug("Init server");
 	if (!config)
 		throw "There is no config for the server";
@@ -124,18 +140,28 @@ Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
 
+	Location *loc = getLocation(request);
 	Response response;
-	if (request.getMethod() == "GET") {
-		response = handle_get(request);
-	} /*else if (request.getMethod() == "POST") {
-		response = handle_post(request, path);
-	} else if (request.getMethod() == "DELETE") {
-		response = handle_delete(request, path);
-	} else if (request.getMethod() == "PUT") {
-		response = handle_put(request, path);
-	} */else {
+
+	//This means resource is not found	
+	if(loc == NULL)
+		response.setStatusCode(404);
+	else if(loc->checkMethod(request.getMethod()) == false)
 		response.setStatusCode(405);
+	else
+	{
+		if (request.getMethod() == "GET") {
+			response = handle_get(request, loc);
+		} /*else if (request.getMethod() == "POST") {
+			response = handle_post(request, path);
+		} else if (request.getMethod() == "DELETE") {
+			response = handle_delete(request, path);
+		} else if (request.getMethod() == "PUT") {
+			response = handle_put(request, path);
+		} */else {
+			response.setStatusCode(405);
 	}
+}
 
 
 	response.addHeader("Connection", "close");
@@ -198,18 +224,13 @@ void Server::setIndex(const std::string& index) {
 }
 */
 
-Response Server::handle_get(const Request& request) {
+Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
 
-	std::string file_path = request.getPath();
-	std::cout<<"complete: "<<file_path<<std::endl;
-	for(std::vector<Location *>::iterator it = this->_locations.begin();
-			it != this->_locations.end(); it++)
-	{
-		if((*it)->getLocation() == request.getResource())
-			break;
-	}
-
+	std::cout<<"resource: "<<request.getResource()<<std::endl;
+	std::cout<<"Location: "<<loc->getLocation()<<std::endl;
+	std::cout<<"Root: "<<loc->getRoot()<<std::endl;
+	
 	// logger.debug("File path: " + file_path);
 	/*
 	if (file_path.find(getRootPath()) != 0) {
@@ -335,3 +356,37 @@ std::string Server::getCgiPath(const std::string &file_path) {
 	return "";
 }
 */
+
+Location* Server::getLocation(const Request& request)
+{
+	std::string file_path = request.getResource();
+	std::string aux = "";
+	Location *l;
+	unsigned long len;
+	unsigned long coincidence;
+
+	coincidence = 0;
+	l = NULL;
+	for(std::vector<Location *>::iterator it = this->_locations.begin();
+			it != this->_locations.end(); it++)
+	{
+		len = (*it)->getLocation().size();
+		aux = file_path.substr(0, len);
+		if(file_path[len] == '/' || len == file_path.size())
+		{
+			if(l == NULL)
+			{
+				coincidence = len;
+				l = (*it);
+			}
+			if(len > coincidence)
+			{
+				l = (*it);
+				coincidence = len;
+			}
+		}
+	}
+
+
+	return l;
+}

@@ -26,9 +26,13 @@ class Location
 
 		//Getters
 		std::string getLocation(void) const;
+		std::string getRoot(void) const;
 		std::vector<std::string>::iterator getIndexBegin(void);
 		std::vector<std::string>::iterator getIndexEnd(void);
 		std::vector<std::string>::iterator getAllowMethodsBegin(void);
 		std::vector<std::string>::iterator getAllowMethodsEnd(void);
+
+		//Check if method is available
+		bool checkMethod(std::string method);
 };
 #endif

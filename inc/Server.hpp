@@ -31,6 +31,7 @@ private:
 	std::string root_path;
 
 	Response handle_request(Request buffer);
+	Location* getLocation(const Request &request);
 
 public:
 
@@ -55,7 +56,7 @@ public:
 
 	std::string defaultErrorPage(Response &response);
 
-	Response handle_get(const Request& request);
+	Response handle_get(const Request& request, Location *loc);
 
 	//Response handle_post(const Request& request, const std::string& path);
 

@@ -7,7 +7,7 @@
 Location::Location(std::string location)
 	:_location(location), _root("")
 {
-
+	this->_allow_methods.push_back("GET");
 }
 
 
@@ -76,3 +76,19 @@ std::vector<std::string>::iterator Location::getAllowMethodsEnd(void)
 	return this->_allow_methods.end();
 }
 
+//This function returns and the root path to resource
+std::string Location::getRoot(void) const
+{
+	return this->_root;
+}
+
+//This function checks if a given method is on location
+bool Location::checkMethod(std::string method)
+{
+	std::vector<std::string>::iterator it = std::find(this->_allow_methods.begin(),
+			this->_allow_methods.end(), method);
+
+	if(it == this->_allow_methods.end())
+		return false;
+	return true;
+}

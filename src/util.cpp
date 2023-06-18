@@ -123,6 +123,8 @@ std::string util::executeCgi(const Request &request, const std::string &cgiBinPa
 */
 int util::stoi(std::string str)
 {
+	if (str.size() && !isdigit(str[0]))
+		return -1;
     int num;
     std::stringstream ss;
     ss << str;
