@@ -11,7 +11,7 @@ Server::Server() {
 	l->setRoot("www/");
 	l->addIndex("index.html");
 	this->_locations.push_back(l);
-//	init();
+	init();
 }
 
 Server::~Server() {
@@ -23,6 +23,8 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
+	if (!config)
+		throw "There is no config for the server";
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
 	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
@@ -35,18 +37,19 @@ Server::Server(Config *config) {
 			logger.log("Listen on " + config->get("listen." + util::itos(i) + ".host")
 				+ ":" + config->get("listen." + util::itos(i) + ".port"));
 		} catch (const char *message) {
-			logger.error("Cannot init server " + name + ". " + message);
+			logger.error(message);
 		}
 	}
-	//init();
+	if (listeners.size() == 0)
+		throw "Cannot init server because there are not any listener.";
+	init();
 }
 
 void Server::init() {
 
-	Response::init();
 	//initDefaultErrorPages();
 
-	// logger.debug("Creating server");
+	logger.debug("Creating server");
 }
 
 int Server::run() {
@@ -123,11 +126,8 @@ int Server::run() {
 				ssize_t r_recv = connectIt->recv();
 				// If the request is fully received
 				if (r_recv == 0) {
-					//Response response(400);
-					
-					Response response = getResponse(connectIt->getRequest());   // TODO siempre se pasa 0, para que el address?
-					(void) response;
-					//connectIt->setResponse(response.toString());
+					Response response = getResponse(connectIt->getRequest());
+					connectIt->setResponse(response.toString());
 					logger.log("Response: " + util::itos(response.getStatusCode()));
 				}
 				// If an error in read
@@ -159,42 +159,43 @@ int Server::run() {
 
 Response Server::getResponse(const std::string &bufferstr) {
 
-	Response response(401);
+	Response response;
 	if (bufferstr.empty()) {
 		response = Response(400);
-		// logger.error("Empty request");
-	} else if (bufferstr.find('\r') == std::string::npos) {
+		logger.debug("Empty request");
+	} else if (bufferstr.find('\r') == std::string::npos) { // TODO ??
 		response = Response(400);
-		// logger.error("Invalid request");
+		logger.debug("Invalid request");
 	} else {
 
 		try {
-
 			Request request(bufferstr);
 			response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)
 		{	
-			// logger.error("Exception while handling request: " +
-						//  std::string(e.what()));
+			logger.error("Exception while handling request: " +  std::string(e.what()));
 			response = Response(400);
 		}
 		catch (std::exception &e) {
-			// logger.error("Exception while handling request: " +
-						//  std::string(e.what()));
-			//response = Response(500);
+			logger.error("Exception while handling request: " + std::string(e.what()));
+			response = Response(500);
 		}
 	}
 
 	if (response.getStatusCode() >= 400) {
 		//response.setBody(getErrorPage(response.getStatusCode()));
-		response.addHeader("Content-Length",
-						   util::itos(response.getBody().size()));
+		response.addHeader("Content-Length", util::itos(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
 	}
 
 	// logger.debug("Response raw: " + response.toString());
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
+
+	// TODO body de prueba
+	std::string b = defaultErrorPage(response);
+	response.setBody(b);
+	////
 
 	return response;
 }
@@ -228,29 +229,19 @@ std::string Server::getErrorPage(int status) {
 	return this->routes["*"].getErrorPage(status);
 }
 */
-/*
-void Server::initDefaultErrorPages() {
-	for (int i = 0; i < 600; i++) {
-		if (!this->routes["*"].getErrorPage(i).empty())
-			continue;
-		if (Response(i).getStatusString().empty()) {
-			this->routes["*"].setRawErrorPage(i, "<html>\n"
-								   "<body>\n"
-								   "<h1>" + util::to_string(i) +
-								   " Unknown error</h1>\n"
-								   "</body>\n"
-								   "</html>");
-			continue;
-		} else {
-			this->routes["*"].setRawErrorPage(i, "<html>\n"
-								   "<body>\n"
-								   "<h1>" + Response(i).getStatusString() +
-								   "</h1>\n"
-								   "</body>\n"
-								   "</html>");
-		}
-	}
-}*/
+
+std::string Server::defaultErrorPage(Response &response) {
+	std::stringstream page;
+	page << "<html>\n"
+		<< " <body>\n"
+		<< "  <h1>" << response.getStatusCode() << " " << response.getStatusMessage()
+		<< "</h1>\n"
+		<< " </body>\n"
+		<< "</html>";
+
+	return page.str();
+}
+
 /*
 const std::string &Server::getRootPath() const {
 	return root_path;
@@ -291,12 +282,12 @@ Response Server::handle_get(const Request& request) {
 
 	std::string file_path = request.getPath();
 	std::cout<<"complete: "<<file_path<<std::endl;
-	for(std::vector<Location *>::iterator it = this->_locations.begin();
-			it != this->_locations.end(); it++)
-	{
-		if((*it)->getLocation() == request.getResource())
-			break;
-	}
+	// for(std::vector<Location *>::iterator it = this->_locations.begin();
+	// 		it != this->_locations.end(); it++)
+	// {
+	// 	if((*it)->getLocation() == request.getResource())
+	// 		break;
+	// }
 
 	// logger.debug("File path: " + file_path);
 	/*

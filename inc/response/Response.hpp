@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <sstream>
 #include <iostream>
 
 #define HTTP_PROTOCOL "HTTP/1.1"
@@ -27,7 +28,7 @@ class Response
 		Response(void);
 
 		//Methods to init the status code	
-		static void init(void);
+		static std::map<unsigned int, std::string> init_message_status_code(void);
 
 		//Getters
 		unsigned int getStatusCode(void) const;
@@ -43,6 +44,8 @@ class Response
 		void setStatusMessage(std::string status_message);
 		void setBody(std::string& body);
 		bool addHeader(std::string header_key, std::string header_value);
+
+		std::string toString();
 };
 
 #endif

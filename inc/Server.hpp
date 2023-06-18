@@ -54,7 +54,7 @@ public:
 
 	void init();
 
-	void initDefaultErrorPages();
+	std::string defaultErrorPage(Response &response);
 
 	Response getResponse(const std::string &bufferstr);
 

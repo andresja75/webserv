@@ -15,10 +15,24 @@ void Cluster::run() {
 
 int Cluster::init() {
     logger.debug("Init Cluster");
+    size_t size = _config.key_size("server");
 
-    for (size_t i = 0; i < _config.key_size("server"); i++) {
-        Server server(_config.get_config("server." + util::itos(i)));
-        _servers.push_back(server);
+    for (size_t i = 0; i < size; i++) {
+        try {
+            Server server(_config.get_config("server." + util::itos(i)));
+            _servers.push_back(server);
+		} catch (const char *message) {
+			logger.error(message);
+        }
     }
-    return 0;
+    if (size == 0) {
+        try {
+            Server server(_config.get_config("server"));
+            _servers.push_back(server);
+		} catch (const char *message) {
+			logger.error(message);
+        }
+    }
+
+    return !_servers.size();
 }
