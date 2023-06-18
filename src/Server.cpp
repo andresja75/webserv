@@ -26,13 +26,15 @@ Server::~Server() {
 Server::Server(Config *config) {
 	
 	/*Borrar despues*/
-	Location *l = new Location("/www");
-	l->setRoot("./www");
+	Location *l = new Location("/");
+	l->setRoot("./paginas");
 	l->addIndex("index.html");
+	l->addIndex("prueba.html");
 	this->_locations.push_back(l);
 	Location *l1 = new Location("/directorio_1");
-	l1->setRoot("./files_1");
+	l1->setRoot("./paginas");
 	l1->addIndex("index.html");
+	l1->addIndex("noticias.html");
 	this->_locations.push_back(l1);
 	Location *l2 = new Location("/directorio_");
 	l2->setRoot("./paginas");
@@ -130,8 +132,9 @@ Response Server::getResponse(const std::string &bufferstr) {
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
 
 	// TODO body de prueba
+	/*
 	std::string b = defaultErrorPage(response);
-	response.setBody(b);
+	response.setBody(b);*/
 	////
 
 	return response;
@@ -226,13 +229,69 @@ void Server::setIndex(const std::string& index) {
 
 Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
-
-	std::cout<<"resource: "<<request.getResource()<<std::endl;
-	std::cout<<"Location: "<<loc->getLocation()<<std::endl;
-	std::cout<<"Root: "<<loc->getRoot()<<std::endl;
 	
-	// logger.debug("File path: " + file_path);
-	/*
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + aux;
+
+	logger.debug("File path: " + file_path);
+	logger.debug("request path: " + request.getResource());
+	if(request.getResource().compare("/") == 0)
+		file_path = file_path + "/";
+	if(file_path[file_path.size() - 1] == '/')
+	{	
+		std::cout<<"Directory"<<std::endl;
+		std::string file_content;
+		std::string line;
+		std::string absolute_file_path = "";
+
+		std::vector<std::string>::iterator it;
+		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
+		{
+			absolute_file_path = file_path + (*it);
+
+			std::cout<<"absolute_file_path: "<<absolute_file_path<<std::endl;
+			
+			// Check if file exists
+			std::ifstream file(absolute_file_path.c_str());
+			if (file.good()) {
+				std::cout<<"file_path: "<<absolute_file_path<<std::endl;
+				while (std::getline(file, line, '\n')) {
+					file_content += line + "\n";
+					}
+				break;
+			}
+			absolute_file_path = "";
+		}
+
+		if(it == loc->getIndexEnd())
+		{
+			response.setStatusCode(404);
+			return response;
+		}
+		else
+		{
+			response.setStatusCode(200);
+			response.setBody(file_content);
+		}
+	}
+	else
+	{
+		// Check if file exists
+		std::ifstream file(file_path.c_str());
+		if (!file.good()) {
+			// logger.error("File not found");
+			return Response(404);
+		}
+		std::string file_content;
+		std::string line;
+		while (std::getline(file, line, '\n')) {
+			file_content += line + "\n";
+		}
+
+		response.setStatusCode(200);
+		response.setBody(file_content);
+	}
+/*
 	if (file_path.find(getRootPath()) != 0) {
 		// logger.error("Invalid path");
 		return Response(403);

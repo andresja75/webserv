@@ -25,7 +25,7 @@ bool Location::addIndex(std::string index)
 {
 	std::vector<std::string>::iterator it =
 		std::find(this->_indexes.begin(), this->_indexes.end(), index);
-	if(it == this->_indexes.end())
+	if(it != this->_indexes.end())
 		return false;
 
 	this->_indexes.push_back(index);
@@ -37,7 +37,7 @@ bool Location::addMethod(std::string method)
 {
 	std::vector<std::string>::iterator it =
 		std::find(this->_allow_methods.begin(), this->_allow_methods.end(), method);
-	if(it == this->_allow_methods.end())
+	if(it != this->_allow_methods.end())
 		return false;
 
 	this->_allow_methods.push_back(method);
