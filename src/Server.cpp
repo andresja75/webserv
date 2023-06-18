@@ -34,6 +34,7 @@ Server::Server(Config *config) {
 
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
+	this->root_path = config->get("root");
 	// Many listeners
 	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
 		try {

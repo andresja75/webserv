@@ -8,7 +8,7 @@
 class Cluster {
 private:
 	Config _config;
-	std::vector<Server> _servers;
+	std::vector<Server *> _servers;
 
 	int addSocketsToWatch(struct pollfd *fds);
 	int checkListeners(struct pollfd *fds);
@@ -16,6 +16,7 @@ private:
 
 public:
 	Cluster();
+	~Cluster();
 	Cluster(const Config& config);
 
 	void run();

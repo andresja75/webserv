@@ -3,13 +3,19 @@
 Cluster::Cluster() {}
 Cluster::Cluster(const Config& config): _config(config) {}
 
+Cluster::~Cluster() {
+    for (size_t i = 0; i < _servers.size(); i++) {
+        delete _servers[i];
+    }
+}
+
 int Cluster::init() {
     logger.debug("Init Cluster");
     size_t size = _config.key_size("server");
 
     for (size_t i = 0; i < size; i++) {
         try {
-            Server server(_config.get_config("server." + util::itos(i)));
+            Server *server = new Server(_config.get_config("server." + util::itos(i)));
             _servers.push_back(server);
 		} catch (const char *message) {
 			logger.error(message);
@@ -17,8 +23,8 @@ int Cluster::init() {
     }
     if (size == 0) {
         try {
-            Server server(_config.get_config("server"));
-            _servers.push_back(server);
+            Server *server = new Server(_config.get_config("server"));
+                _servers.push_back(server);
 		} catch (const char *message) {
 			logger.error(message);
         }
@@ -32,7 +38,7 @@ int Cluster::addSocketsToWatch(struct pollfd *fds) {
 
     for (size_t i = 0; i < _servers.size(); i++) {
         // Add sockets of the servers
-        std::vector<Listener> *listeners = _servers[i].getListeners();
+        std::vector<Listener> *listeners = _servers[i]->getListeners();
         for (size_t j = 0; j < listeners->size() && j < MAX_CONNECTION; j++) {
             int socket = (*listeners)[j].getSocket();
             (*listeners)[j].index = nfds;
@@ -41,7 +47,7 @@ int Cluster::addSocketsToWatch(struct pollfd *fds) {
             nfds++;
         }
         // Add open connections
-        std::vector<Connection *> *connections = _servers[i].getConnections();
+        std::vector<Connection *> *connections = _servers[i]->getConnections();
         std::vector<Connection *>::iterator connectIt = connections->begin();
         for (; connectIt != connections->end(); connectIt++) {
             int client = (*connectIt)->getSocket();
@@ -60,8 +66,8 @@ int Cluster::addSocketsToWatch(struct pollfd *fds) {
 int Cluster::checkListeners(struct pollfd *fds) {
     for (size_t i = 0; i < _servers.size(); i++) {
         // Check servers connections
-        std::vector<Listener> *listeners = _servers[i].getListeners();
-        std::vector<Connection *> *connections = _servers[i].getConnections();
+        std::vector<Listener> *listeners = _servers[i]->getListeners();
+        std::vector<Connection *> *connections = _servers[i]->getConnections();
         for (size_t n = 0; n < listeners->size() && n < MAX_CONNECTION; n++) {
             int idx = (*listeners)[n].index;
             if (idx >= 0 && fds[idx].revents & POLLIN) {
@@ -85,7 +91,7 @@ int Cluster::checkListeners(struct pollfd *fds) {
 
 void Cluster::checkConnections(struct pollfd *fds) {
     for (size_t i = 0; i < _servers.size(); i++) {
-        std::vector<Connection *> *connections = _servers[i].getConnections();
+        std::vector<Connection *> *connections = _servers[i]->getConnections();
         std::vector<Connection *>::iterator connectIt = connections->begin();
         connectIt = connections->begin();
         for (; connectIt != connections->end(); connectIt++) {
@@ -110,7 +116,7 @@ void Cluster::checkConnections(struct pollfd *fds) {
                 ssize_t r_recv = (*connectIt)->recv();
                 // If the request is fully received
                 if (r_recv == 0) {
-                    Response response = _servers[i].getResponse((*connectIt)->getRequest());
+                    Response response = _servers[i]->getResponse((*connectIt)->getRequest());
                     (*connectIt)->setResponse(response.toString());
                     logger.log("Response: " + util::itos(response.getStatusCode()));
                 }

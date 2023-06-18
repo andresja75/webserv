@@ -14,7 +14,6 @@
 #include "request/Request.hpp"
 #include "response/Response.hpp"
 // #include "MimeTypes.hpp"
-// #include "Route.hpp"
 #include "Listener.hpp"
 #include "Connection.hpp"
 #include "util.hpp"
@@ -29,9 +28,7 @@ private:
 	std::vector<Connection *> connections;
 	std::vector<Location *> _locations;
 	std::string name;
-
 	std::string root_path;
-	//std::map<std::string, Route> routes;
 
 	Response handle_request(Request buffer);
 
@@ -57,8 +54,6 @@ public:
 	void init();
 
 	std::string defaultErrorPage(Response &response);
-
-	//void addRoute(const Route &route);
 
 	Response handle_get(const Request& request);
 
