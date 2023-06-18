@@ -1,5 +1,5 @@
 server:
-  root: path/YoupiBanane
+  root: path/YoupiBanane/
   name: serverOne
   listen:
     host: 127.0.0.1
@@ -8,12 +8,14 @@ server:
     host: 0.0.0.0
     port: 7070
   location:
-    allow_method: GET
+    root: path/YoupiBanane/nop/
     route: /directory
+    index: other.pouic
+    allow_method: GET
     cgi: bla
 
 server:
-  root: path/jklse
+  root: path/YoupiBanane/
   name: serverTwo
   listen:
     host: 127.0.0.1

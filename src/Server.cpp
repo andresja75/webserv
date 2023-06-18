@@ -91,6 +91,8 @@ Response Server::getResponse(const std::string &bufferstr) {
 
 		try {
 			Request request(bufferstr);
+			// std::string bo = executeCgi(request, "cgi_tester", "Hola mundo");
+			// std::cout << "Cgi: " << bo << std::endl;
 			response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)

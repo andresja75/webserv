@@ -9,11 +9,11 @@ INCLUDES = $(INC_DIR)/Listener.hpp $(INC_DIR)/Connection.hpp \
 			$(INC_DIR)/request/Request.hpp \
 			$(INC_DIR)/response/Response.hpp \
 			$(INC_DIR)/Logger.hpp $(INC_DIR)/Config.hpp \
-			$(INC_DIR)/Location.hpp
+			$(INC_DIR)/Location.hpp $(INC_DIR)/Cgi.hpp
 
 SRCS = main.cpp Connection.cpp Listener.cpp Server.cpp util.cpp \
 	   request/Request.cpp response/Response.cpp Logger.cpp Config.cpp \
-	   Cluster.cpp Location.cpp
+	   Cluster.cpp Location.cpp Cgi.cpp
 
 OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 NAME = webserv

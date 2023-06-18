@@ -1,6 +1,7 @@
 #ifndef CLUSTER_HPP
 #define CLUSTER_HPP
 
+#include <sys/poll.h>
 #include "../inc/Config.hpp"
 #include "../inc/Server.hpp"
 #include "../inc/Logger.hpp"

@@ -51,6 +51,7 @@ class Request
 		bool parse_url(void);
 		void show_headers_info(void);
 		std::string getHeader(std::string header);
+		std::map<std::string, std::string> *getHeaders();
 
 		//Method to give information about request
 		std::string getMethod(void) const;

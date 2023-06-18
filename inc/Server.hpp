@@ -3,12 +3,7 @@
 
 
 #include <string>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/poll.h>
-#include <unistd.h>
-# include <vector>
+#include <vector>
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "request/Request.hpp"
@@ -18,6 +13,7 @@
 #include "Connection.hpp"
 #include "util.hpp"
 #include "Location.hpp"
+#include "Cgi.hpp"
 
 #define MAX_CONNECTION 1024
 
@@ -36,9 +32,7 @@ public:
 
 
 	Server();
-
 	Server(Config *config);
-
 	~Server();
 
 	const std::string &getRootPath() const;
@@ -56,11 +50,8 @@ public:
 	std::string defaultErrorPage(Response &response);
 
 	Response handle_get(const Request& request);
-
 	//Response handle_post(const Request& request, const std::string& path);
-
 	//Response handle_delete(const Request& request, const std::string& path);
-
 	//Response handle_put(const Request& request, const std::string& path);
 
 	//std::string getCgiPath(const std::string &file_path);

@@ -253,6 +253,8 @@ std::string Request::getHeader(std::string header)
 	return it->second;
 }
 
+std::map<std::string, std::string> *Request::getHeaders() { return (&this->_header_fields); }
+
 //Method to get the verb used in the request
 std::string Request::getMethod(void) const
 {	
