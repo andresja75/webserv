@@ -27,20 +27,21 @@ Server::Server(Config *config) {
 	
 	/*Borrar despues*/
 	Location *l = new Location("/");
-	l->setRoot("./paginas");
+	l->setRoot("./www");
 	l->addIndex("index.html");
 	l->addIndex("prueba.html");
 	this->_locations.push_back(l);
-	Location *l1 = new Location("/directorio_1");
-	l1->setRoot("./paginas");
+	Location *l1 = new Location("/directorio_1/");
+	l1->setRoot("./paginas_2");
 	l1->addIndex("index.html");
-	l1->addIndex("noticias.html");
+
 	this->_locations.push_back(l1);
-	Location *l2 = new Location("/directorio_");
+	Location *l2 = new Location("/directorio_/");
 	l2->setRoot("./paginas");
 	l2->addIndex("index.html");
+	l2->addIndex("noticias.html");
 	this->_locations.push_back(l2);
-	Location *l3 = new Location("/directorio_1/index.html");
+	Location *l3 = new Location("/directorio_1/index.html/");
 	l3->setRoot("./paginas");
 	l3->addIndex("index.html");
 	this->_locations.push_back(l3);
@@ -231,64 +232,65 @@ Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
 	
 	std::string aux = request.getResource().substr(loc->getLocation().size());
-	std::string file_path = loc->getRoot() + aux;
+	std::string file_path = loc->getRoot() + "/" + aux;
 
 	logger.debug("File path: " + file_path);
 	logger.debug("request path: " + request.getResource());
-	if(request.getResource().compare("/") == 0)
-		file_path = file_path + "/";
+	
+	//First we check if it is a directory or a file
 	if(file_path[file_path.size() - 1] == '/')
-	{	
+	{
+		std::string absolute_path = "";
 		std::cout<<"Directory"<<std::endl;
-		std::string file_content;
-		std::string line;
-		std::string absolute_file_path = "";
-
 		std::vector<std::string>::iterator it;
+		
 		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
 		{
-			absolute_file_path = file_path + (*it);
-
-			std::cout<<"absolute_file_path: "<<absolute_file_path<<std::endl;
-			
-			// Check if file exists
-			std::ifstream file(absolute_file_path.c_str());
-			if (file.good()) {
-				std::cout<<"file_path: "<<absolute_file_path<<std::endl;
-				while (std::getline(file, line, '\n')) {
-					file_content += line + "\n";
-					}
+			absolute_path = file_path + (*it);
+			std::cout<<absolute_path<<std::endl;
+			//We check if file exists
+			std::ifstream file(absolute_path.c_str());
+			if (file.good())
 				break;
-			}
-			absolute_file_path = "";
+			absolute_path = "";
 		}
 
+		//We check if iterator is pointing end meaning file could not be found
 		if(it == loc->getIndexEnd())
 		{
-			response.setStatusCode(404);
-			return response;
-		}
-		else
-		{
-			response.setStatusCode(200);
-			response.setBody(file_content);
-		}
-	}
-	else
-	{
-		// Check if file exists
-		std::ifstream file(file_path.c_str());
-		if (!file.good()) {
 			// logger.error("File not found");
-			return Response(404);
+			return Response(404);	
 		}
+		
+
+		//if exists we introduce the content in the body
+		std::ifstream file(absolute_path.c_str());
 		std::string file_content;
 		std::string line;
 		while (std::getline(file, line, '\n')) {
 			file_content += line + "\n";
 		}
+		response.setBody(file_content);
 
-		response.setStatusCode(200);
+
+	}
+	//if it doesnt pass through if, then comes here, it means target is a file
+	else
+	{
+		std::cout<<"File"<<std::endl;
+		//We check if file exists
+		std::ifstream file(file_path.c_str());
+		if (!file.good()) {
+			// logger.error("File not found");
+			return Response(404);
+		}
+
+		//if file exists we introduce the content in the body
+		std::string file_content;
+		std::string line;
+		while (std::getline(file, line, '\n')) {
+			file_content += line + "\n";
+		}
 		response.setBody(file_content);
 	}
 /*
@@ -431,7 +433,8 @@ Location* Server::getLocation(const Request& request)
 	{
 		len = (*it)->getLocation().size();
 		aux = file_path.substr(0, len);
-		if(file_path[len] == '/' || len == file_path.size())
+
+		if((*it)->getLocation().compare(aux) == 0)
 		{
 			if(l == NULL)
 			{
