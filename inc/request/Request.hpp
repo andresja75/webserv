@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 #include <map>
-#include "util.hpp"
-#include "Logger.hpp"
+#include "../util.hpp"
+#include "../Logger.hpp"
 
 #define SUPPORTED_HTTP_PROTOCOL "HTTP/1.1"
 

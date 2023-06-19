@@ -34,6 +34,7 @@ Server::Server(Config *config) {
 	Location *l1 = new Location("/directorio_1/");
 	l1->setRoot("./paginas_2");
 	l1->addIndex("index.html");
+	l1->addMethod("PUT");
 
 	this->_locations.push_back(l1);
 	Location *l2 = new Location("/directorio_/");
@@ -160,9 +161,10 @@ Response Server::handle_request(Request request) {
 			response = handle_post(request, path);
 		} else if (request.getMethod() == "DELETE") {
 			response = handle_delete(request, path);
-		} else if (request.getMethod() == "PUT") {
-			response = handle_put(request, path);
-		} */else {
+		} */
+		else if (request.getMethod() == "PUT") {
+			response = handle_put(request, loc);
+		} else {
 			response.setStatusCode(405);
 	}
 }
@@ -370,18 +372,68 @@ Response Server::handle_delete(const Request& request, const std::string& path) 
 
 	return response;
 }
+*/
 
-Response Server::handle_put(const Request& request, const std::string& path) {
+Response Server::handle_put(Request& request, Location *loc) {
 	Response response(201);
-	std::string file_path = util::combine_path(getRootPath(), path, true);
-	std::string directory = file_path.substr(0, file_path.rfind("/"));
-	struct stat st = {};
 
-	if (directory.size() && stat(directory.c_str(), &st) == -1)
-		mkdir(directory.c_str(), 0700);
-	std::ofstream file(file_path.c_str());
-	if (!file.is_open())
-		return Response(500);
+
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + "/" + aux;
+
+	logger.debug("File path: " + file_path);
+	logger.debug("request path: " + request.getResource());
+	
+	//Now we check if what we have received is a file or directory
+	if(file_path[file_path.size() - 1] != '/')
+	{
+		//If it reach this point is a file
+		//Making directory if not exists
+		std::string directory = file_path.substr(0, file_path.rfind("/"));
+		std::cout<<"Directory: "<<directory<<std::endl;
+    	struct stat st;
+		if (directory.size() && stat(directory.c_str(), &st) == -1)
+			mkdir(directory.c_str(), 0700);
+
+		//Check if file already exist, if exist then 204 code, if not 201 code
+		if(access(file_path.c_str(), F_OK) == 0)
+			response.setStatusCode(204);
+		else
+			response.setStatusCode(201);
+
+		//Now introduce the content on target file, and create resource
+		std::ofstream file(file_path.c_str());
+		if (!file.is_open())
+			return Response(500);
+
+		std::string file_content = request.getBody();
+		//Check if body is chunked
+		std::string header_chunked = request.getHeader("Transfer-Encoding");
+		if (header_chunked.compare("chunked") == 0) {
+			size_t size = 1;
+			int i = 0;
+			while (size) {
+				size_t count = file_content.find("\r\n", i) - i;
+				size = util::hex_str_to_dec(file_content.substr(i, count));
+				size_t start = file_content.find("\r\n", i) + 2;
+				file << file_content.substr(start, size);
+				i = start + size + 2;
+			}
+		} else {
+			//If it is not chunked introduce content
+			file << file_content;
+		}
+		file.close();
+	}
+	else
+	{
+		//If we reach this point is a directory
+		//It means we are trying to create a directory
+		response.setStatusCode(400);
+	}
+	/*
+
+
 
 	std::string file_content = request.getBody();
 	if (request.getHeader("Transfer-Encoding").find("chunked") != std::string::npos) {
@@ -398,10 +450,12 @@ Response Server::handle_put(const Request& request, const std::string& path) {
 		file << file_content;
 	}
 	file.close();
-
+	*/
 	return response;
+
 }
 
+/*
 // Return the path of the cgi binary or an empty string
 std::string Server::getCgiPath(const std::string &file_path) {
 	std::string::size_type n = file_path.rfind(".");
