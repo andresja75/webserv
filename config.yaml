@@ -1,7 +1,8 @@
 server:
   root: path/YoupiBanane/
   name: serverOne
-  cgi_path: tester
+  cgi_path: cgi_tester
+  error_page: error.html
   listen:
     host: 127.0.0.1
     port: 8080

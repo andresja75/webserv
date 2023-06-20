@@ -6,6 +6,8 @@ The configuration file format is something like a subset of yaml. An example:
 server:
   root: path/YoupiBanane/
   name: serverOne
+  cgi_path: cgi_tester
+  error_page: error.html
   listen:
     host: 127.0.0.1
     port: 8080
@@ -40,6 +42,7 @@ server:
     - root: the default root directory of the server
     - name: the name of the server
     - cgi_path: the path to the executable
+    - error_page: the path to the error page
     - listen: it should be at least one
         - host: ip of the host to listen
         - port: port to listen

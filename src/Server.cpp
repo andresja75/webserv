@@ -7,7 +7,7 @@ Server::Server() {
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
 
-	init();
+	logger.debug("Server created");
 }
 
 Server::~Server() {
@@ -32,11 +32,12 @@ Server::Server(Config *config) {
 	this->name = name.size() ? name : "Server";
 	this->root_path = config->get("root");
 	this->cgi_path = config->get("cgi_path");
+	this->error_page = config->get("error_page");
 	addListeners(config);
 	if (listeners.size() == 0)
 		throw "Cannot init server because there is no listener.";
 	addLocations(config);
-	init();
+	logger.debug("Server created");
 }
 
 void Server::addListeners(Config *config) {
@@ -121,13 +122,6 @@ void Server::addLocations(Config *config) {
 	}
 }
 
-void Server::init() {
-
-	//initDefaultErrorPages();
-
-	logger.debug("Server created");
-}
-
 std::vector<Listener> *Server::getListeners() { return &listeners; }
 std::vector<Connection *> *Server::getConnections() { return &connections; }
 
@@ -158,7 +152,8 @@ Response Server::getResponse(const std::string &bufferstr) {
 	}
 
 	if (response.getStatusCode() >= 400) {
-		//response.setBody(getErrorPage(response.getStatusCode()));
+		std::string body = getErrorPage(response); 
+		response.setBody(body);
 		response.addHeader("Content-Length", util::itos(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
 	}
@@ -166,14 +161,9 @@ Response Server::getResponse(const std::string &bufferstr) {
 	// logger.debug("Response raw: " + response.toString());
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
 
-	// TODO body de prueba
-	/*
-	std::string b = defaultErrorPage(response);
-	response.setBody(b);*/
-	////
-
 	return response;
 }
+
 Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
@@ -210,11 +200,18 @@ Response Server::handle_request(Request request) {
 	return response;
 }
 
-/*
-std::string Server::getErrorPage(int status) {
-	return this->routes["*"].getErrorPage(status);
+std::string Server::getErrorPage(Response &response) {
+	if (!error_page.size())
+		return defaultErrorPage(response);
+
+	std::stringstream page;
+	std::ifstream file(error_page);
+	if (file.good()) {
+		page << file.rdbuf();
+		file.close();
+	}
+	return page.str();
 }
-*/
 
 std::string Server::defaultErrorPage(Response &response) {
 	std::stringstream page;
