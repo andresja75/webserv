@@ -27,6 +27,7 @@ private:
 	std::string root_path;
 	std::string cgi_path;
 	std::string error_page;
+	std::string max_request_size;
 
 	Response handle_request(Request buffer);
 	Location* getLocation(const Request &request);

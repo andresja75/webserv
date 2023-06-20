@@ -3,6 +3,7 @@ server:
   name: serverOne
   cgi_path: cgi_tester
   error_page: error.html
+  max_request_size: 2500
   listen:
     host: 127.0.0.1
     port: 8080
@@ -14,6 +15,7 @@ server:
     root: ./path/YoupiBanane
     index: index.html
     allow_method: GET
+    directory_listing: true
     cgi: bla
   location:
     route: /direc/

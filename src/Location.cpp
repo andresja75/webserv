@@ -22,6 +22,13 @@ void Location::setRoot(std::string root)
 	this->_root = root;		
 }
 
+void Location::setDirectoryList(std::string listing) {
+	if (listing == "True" || listing == "true" || listing == "On" || listing == "on")
+		this->_directory_listing = true;
+	else
+		this->_directory_listing = false;
+}
+
 //This method introduces the specified index in the vector
 bool Location::addIndex(std::string index)
 {
@@ -53,6 +60,8 @@ std::string Location::getLocation(void) const
 {
 	return this->_location;
 }
+
+bool Location::getDirectoryList(void) const { return this->_directory_listing; }
 
 //This function returns and iterator to the begin of indexes
 std::vector<std::string>::iterator Location::getIndexBegin(void)

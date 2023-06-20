@@ -33,6 +33,7 @@ Server::Server(Config *config) {
 	this->root_path = config->get("root");
 	this->cgi_path = config->get("cgi_path");
 	this->error_page = config->get("error_page");
+	this->max_request_size = config->get("max_request_size");
 	addListeners(config);
 	if (listeners.size() == 0)
 		throw "Cannot init server because there is no listener.";
@@ -82,6 +83,7 @@ void Server::addLocations(Config *config) {
 			continue;
 		}
 		loc->setRoot(config->get("location." + util::itos(i) + ".root"));
+		loc->setDirectoryList(config->get("location." + util::itos(i) + ".directory_listing"));
 		// Add indexes
 		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".index"); idx++) {
 			loc->addIndex(config->get("location." + util::itos(i) + ".index." + util::itos(idx)));
@@ -106,6 +108,7 @@ void Server::addLocations(Config *config) {
 			return;
 		}
 		loc->setRoot(config->get("location.root"));
+		loc->setDirectoryList(config->get("location.directory_listing"));
 		// Add indexes
 		for (int idx = 0; idx < config->key_size("location.index"); idx++) {
 			loc->addIndex(config->get("location.index." + util::itos(idx)));
