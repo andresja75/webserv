@@ -24,30 +24,6 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
-	
-	/*Borrar despues*/
-	Location *l = new Location("/");
-	l->setRoot("./www");
-	l->addIndex("index.html");
-	l->addIndex("prueba.html");
-	this->_locations.push_back(l);
-	Location *l1 = new Location("/directorio_1/");
-	l1->setRoot("./paginas_2");
-	l1->addIndex("index.html");
-	l1->addMethod("PUT");
-
-	this->_locations.push_back(l1);
-	Location *l2 = new Location("/directorio_/");
-	l2->setRoot("./paginas");
-	l2->addIndex("index.html");
-	l2->addIndex("noticias.html");
-	this->_locations.push_back(l2);
-	Location *l3 = new Location("/directorio_1/index.html/");
-	l3->setRoot("./paginas");
-	l3->addIndex("index.html");
-	this->_locations.push_back(l3);
-	/*-----------------*/
-
 	logger.debug("Init server");
 	if (!config)
 		throw "There is no config for the server";
@@ -55,8 +31,16 @@ Server::Server(Config *config) {
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
 	this->root_path = config->get("root");
+	addListeners(config);
+	if (listeners.size() == 0)
+		throw "Cannot init server because there is no listener.";
+	addLocations(config);
+	init();
+}
+
+void Server::addListeners(Config *config) {
 	// Many listeners
-	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
+	for (int i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
 		try {
 			Listener listener(
 				config->get("listen." + util::itos(i) + ".host"),
@@ -83,9 +67,57 @@ Server::Server(Config *config) {
 			logger.error(message);
 		}
 	}
-	if (listeners.size() == 0)
-		throw "Cannot init server because there is no listener.";
-	init();
+}
+
+void Server::addLocations(Config *config) {
+	// Many locations
+	for (int i = 0; i < config->key_size("location"); i++) {
+		Location *loc;
+		try {
+			loc = new Location(config->get("location." + util::itos(i) + ".route"));
+		} catch (const char *message) {
+			logger.error(message);
+			continue;
+		}
+		loc->setRoot(config->get("location." + util::itos(i) + ".root"));
+		// Add indexes
+		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".index"); idx++) {
+			loc->addIndex(config->get("location." + util::itos(i) + ".index." + util::itos(idx)));
+		}
+		if (config->key_size("location." + util::itos(i) + ".index") == 0)
+			loc->addIndex(config->get("location." + util::itos(i) + ".index"));
+		// Add methods
+		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".allow_method"); idx++) {
+			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method." + util::itos(idx)));
+		}
+		if (config->key_size("location." + util::itos(i) + ".allow_method") == 0)
+			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method"));
+		_locations.push_back(loc);
+	}
+	// Only one location
+	if (config->key_size("location") == 0) {
+		Location *loc;
+		try {
+			loc = new Location(config->get("location.route"));
+		} catch (const char *message) {
+			logger.error(message);
+			return;
+		}
+		loc->setRoot(config->get("location.root"));
+		// Add indexes
+		for (int idx = 0; idx < config->key_size("location.index"); idx++) {
+			loc->addIndex(config->get("location.index." + util::itos(idx)));
+		}
+		if (config->key_size("location.index") == 0)
+			loc->addIndex(config->get("location.index"));
+		// Add methods
+		for (int idx = 0; idx < config->key_size("location.allow_method"); idx++) {
+			loc->addMethod(config->get("location.allow_method." + util::itos(idx)));
+		}
+		if (config->key_size("location.allow_method") == 0)
+			loc->addMethod(config->get("location.allow_method"));
+		_locations.push_back(loc);
+	}
 }
 
 void Server::init() {
@@ -111,8 +143,6 @@ Response Server::getResponse(const std::string &bufferstr) {
 
 		try {
 			Request request(bufferstr);
-			// std::string bo = executeCgi(request, "cgi_tester", "Hola mundo");
-			// std::cout << "Cgi: " << bo << std::endl;
 			response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)

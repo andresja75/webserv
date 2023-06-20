@@ -49,8 +49,9 @@ public:
     /**
      * Return the number of duplication of the key or 0:
      * key_size("server.0.listen") => 2
+     * Return -1 if there is no key
     */
-    size_t key_size(std::string key);
+    int key_size(std::string key);
 };
 
 #endif

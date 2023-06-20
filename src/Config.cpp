@@ -158,10 +158,10 @@ t_lines Config::get_keys(std::string key) {
 	return keys;
 }
 
-size_t Config::key_size(std::string key) {
+int Config::key_size(std::string key) {
 	Config *that = get_config(key);
 	if (!that)
-		return 0;
+		return -1;
 
 	int i = 0;
 	while (that->_config.find(util::itos(i)) != that->_config.end())

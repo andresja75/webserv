@@ -8,10 +8,18 @@ server:
     host: 0.0.0.0
     port: 7070
   location:
-    root: path/YoupiBanane/nop/
-    route: /directory
-    index: other.pouic
+    root: ./path/YoupiBanane
+    route: /
+    index: index.html
     allow_method: GET
+    cgi: bla
+  location:
+    root: ./path/YoupiBanane/Yeah
+    route: /direc/
+    index: index.html
+    index: not_happy.bad_extension
+    allow_method: GET
+    allow_method: PUT
     cgi: bla
 
 server:

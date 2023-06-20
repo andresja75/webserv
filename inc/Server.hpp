@@ -47,6 +47,8 @@ public:
 	void setIndex(const std::string& index);
 
 	void init();
+	void addListeners(Config *config);
+	void addLocations(Config *config);
 
 	std::string defaultErrorPage(Response &response);
 
