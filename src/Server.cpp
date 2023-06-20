@@ -1,5 +1,7 @@
 #include <sys/fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h> 
 #include "../inc/Server.hpp"
 
 Server::Server() {
@@ -27,14 +29,16 @@ Server::Server(Config *config) {
 	
 	/*Borrar despues*/
 	Location *l = new Location("/");
-	l->setRoot("./www");
+//	l->setRoot("./www");
 	l->addIndex("index.html");
 	l->addIndex("prueba.html");
+	l->addMethod("PUT");
 	this->_locations.push_back(l);
 	Location *l1 = new Location("/directorio_1/");
 	l1->setRoot("./paginas_2");
 	l1->addIndex("index.html");
 	l1->addMethod("PUT");
+	l1->addMethod("DELETE");
 
 	this->_locations.push_back(l1);
 	Location *l2 = new Location("/directorio_/");
@@ -161,9 +165,9 @@ Response Server::handle_request(Request request) {
 			response = handle_get(request, loc);
 		} /*else if (request.getMethod() == "POST") {
 			response = handle_post(request, path);
-		} else if (request.getMethod() == "DELETE") {
-			response = handle_delete(request, path);
-		} */
+		}*/ else if (request.getMethod() == "DELETE") {
+			response = handle_delete(request, loc);
+		} 
 		else if (request.getMethod() == "PUT") {
 			response = handle_put(request, loc);
 		} else {
@@ -366,16 +370,50 @@ Response Server::handle_post(const Request& request, const std::string& path) {
 	response.setBody(file_content);
 	return response;
 }
+*/
 
-Response Server::handle_delete(const Request& request, const std::string& path) {
-	Response response(405);
-	UNUSED(request);
-	UNUSED(path);
+//This function handle delete verb
+Response Server::handle_delete(const Request& request, Location *loc) {
+	Response response;
+
+
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + "/" + aux;
+
+	logger.debug("File path: " + file_path);
+	logger.debug("request path: " + request.getResource());
+
+	if(file_path[file_path.size() - 1] == '/')
+		return response.setStatusCode(400);
+	
+	if(access(file_path.c_str(), F_OK) == 0)
+	{
+		//File exists
+		if(remove(file_path.c_str()) == 0)
+		{
+			//File deleted ok
+			response.setStatusCode(200);
+		}
+		else
+		{
+			//File deleted not ok
+			response.setStatusCode(500);
+		}
+
+		//Here we should check going back through directories which one
+		//are empty
+	}
+	else
+	{
+		//File not exists
+		response.setStatusCode(404);
+	}
+
 
 	return response;
 }
-*/
 
+//This function handle put verb
 Response Server::handle_put(Request& request, Location *loc) {
 	Response response(201);
 
@@ -392,11 +430,26 @@ Response Server::handle_put(Request& request, Location *loc) {
 		//If it reach this point is a file
 		//Making directory if not exists
 		std::string directory = file_path.substr(0, file_path.rfind("/"));
+		directory = directory + "/";
 		std::cout<<"Directory: "<<directory<<std::endl;
-    	struct stat st;
-		if (directory.size() && stat(directory.c_str(), &st) == -1)
-			mkdir(directory.c_str(), 0700);
+		std::string aux_directory = "";
+		unsigned long pos;
+		pos = 0;
+		while(directory.compare(aux_directory) != 0)
+		{
+			pos = directory.find("/", pos);
+			if(pos == std::string::npos)
+				break;
+			pos++;
+			aux_directory = directory.substr(0 , pos);
+			struct stat st;
+			if (aux_directory.size() && stat(aux_directory.c_str(), &st) == -1)
+				mkdir(aux_directory.c_str(), 0700);
+			pos++;
+		}
+			
 
+		
 		//Check if file already exist, if exist then 204 code, if not 201 code
 		if(access(file_path.c_str(), F_OK) == 0)
 			response.setStatusCode(204);

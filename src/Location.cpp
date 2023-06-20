@@ -5,7 +5,7 @@
 //Constructors and destructor of Location class
 
 Location::Location(std::string location)
-	:_location(location), _root("/")
+	:_location(location), _root("./")
 {
 	this->_allow_methods.push_back("GET");
 }
