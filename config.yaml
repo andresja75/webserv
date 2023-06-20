@@ -1,6 +1,9 @@
 server:
   root: path/YoupiBanane/
   name: serverOne
+  cgi_path: cgi_tester
+  error_page: error.html
+  max_request_size: 2500
   listen:
     host: 127.0.0.1
     port: 8080
@@ -8,10 +11,19 @@ server:
     host: 0.0.0.0
     port: 7070
   location:
-    root: path/YoupiBanane/nop/
-    route: /directory
-    index: other.pouic
+    route: /
+    root: ./path/YoupiBanane
+    index: index.html
     allow_method: GET
+    directory_listing: true
+    cgi: bla
+  location:
+    route: /direc/
+    root: ./path/YoupiBanane/Yeah
+    index: index.html
+    index: not_happy.bad_extension
+    allow_method: GET
+    allow_method: PUT
     cgi: bla
 
 server:

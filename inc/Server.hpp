@@ -25,6 +25,9 @@ private:
 	std::vector<Location *> _locations;
 	std::string name;
 	std::string root_path;
+	std::string cgi_path;
+	std::string error_page;
+	std::string max_request_size;
 
 	Response handle_request(Request buffer);
 	Location* getLocation(const Request &request);
@@ -37,7 +40,7 @@ public:
 	~Server();
 
 	const std::string &getRootPath() const;
-	std::string getErrorPage(int status);
+	std::string getErrorPage(Response &response);
 	Response getResponse(const std::string &bufferstr);
 	std::vector<Listener> *getListeners();
 	std::vector<Connection *> *getConnections();
@@ -46,7 +49,8 @@ public:
 	void setErrorPage(int status, const std::string& path);
 	void setIndex(const std::string& index);
 
-	void init();
+	void addListeners(Config *config);
+	void addLocations(Config *config);
 
 	std::string defaultErrorPage(Response &response);
 

@@ -1,3 +1,8 @@
-1. make a getResourceDirectoryMethod in request class
-2. make a toString in Response classs
-
+- A request to your server should never hang forever
+- You need at least GET, POST, and DELETE methods.
+- Limit client body size.
+- Locations:
+    - Turn on or off directory listing.
+    - Set a default file to answer if the request is a directory.
+    - Execute CGI based on certain file extension (for example .php).
+    - Make it work with POST and GET methods.

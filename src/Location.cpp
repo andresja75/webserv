@@ -7,6 +7,8 @@
 Location::Location(std::string location)
 	:_location(location), _root("./")
 {
+	if (_location[_location.size() - 1] != '/')
+		throw "The root of the location should finish with /"; 
 	this->_allow_methods.push_back("GET");
 }
 
@@ -18,6 +20,13 @@ Location::Location(std::string location)
 void Location::setRoot(std::string root)
 {
 	this->_root = root;		
+}
+
+void Location::setDirectoryList(std::string listing) {
+	if (listing == "True" || listing == "true" || listing == "On" || listing == "on")
+		this->_directory_listing = true;
+	else
+		this->_directory_listing = false;
 }
 
 //This method introduces the specified index in the vector
@@ -51,6 +60,8 @@ std::string Location::getLocation(void) const
 {
 	return this->_location;
 }
+
+bool Location::getDirectoryList(void) const { return this->_directory_listing; }
 
 //This function returns and iterator to the begin of indexes
 std::vector<std::string>::iterator Location::getIndexBegin(void)

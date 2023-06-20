@@ -9,7 +9,7 @@ Server::Server() {
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
 
-	init();
+	logger.debug("Server created");
 }
 
 Server::~Server() {
@@ -26,31 +26,6 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
-	
-	/*Borrar despues*/
-	Location *l = new Location("/");
-//	l->setRoot("./www");
-	l->addIndex("index.html");
-	l->addIndex("prueba.html");
-	l->addMethod("PUT");
-	this->_locations.push_back(l);
-	Location *l1 = new Location("/directorio_1/");
-	l1->setRoot("./paginas_2");
-	l1->addIndex("index.html");
-	l1->addMethod("PUT");
-	l1->addMethod("DELETE");
-
-	this->_locations.push_back(l1);
-	Location *l2 = new Location("/directorio_/");
-	l2->setRoot("./paginas");
-	l2->addIndex("index.html");
-	l2->addIndex("noticias.html");
-	this->_locations.push_back(l2);
-	Location *l3 = new Location("/directorio_1/index.html/");
-	l3->setRoot("./paginas");
-	l3->addIndex("index.html");
-	this->_locations.push_back(l3);
-	/*-----------------*/
 
 	logger.debug("Init server");
 	if (!config)
@@ -59,8 +34,19 @@ Server::Server(Config *config) {
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
 	this->root_path = config->get("root");
+	this->cgi_path = config->get("cgi_path");
+	this->error_page = config->get("error_page");
+	this->max_request_size = config->get("max_request_size");
+	addListeners(config);
+	if (listeners.size() == 0)
+		throw "Cannot init server because there is no listener.";
+	addLocations(config);
+	logger.debug("Server created");
+}
+
+void Server::addListeners(Config *config) {
 	// Many listeners
-	for (size_t i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
+	for (int i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
 		try {
 			Listener listener(
 				config->get("listen." + util::itos(i) + ".host"),
@@ -87,16 +73,59 @@ Server::Server(Config *config) {
 			logger.error(message);
 		}
 	}
-	if (listeners.size() == 0)
-		throw "Cannot init server because there is no listener.";
-	init();
 }
 
-void Server::init() {
-
-	//initDefaultErrorPages();
-
-	logger.debug("Server created");
+void Server::addLocations(Config *config) {
+	// Many locations
+	for (int i = 0; i < config->key_size("location"); i++) {
+		Location *loc;
+		try {
+			loc = new Location(config->get("location." + util::itos(i) + ".route"));
+		} catch (const char *message) {
+			logger.error(message);
+			continue;
+		}
+		loc->setRoot(config->get("location." + util::itos(i) + ".root"));
+		loc->setDirectoryList(config->get("location." + util::itos(i) + ".directory_listing"));
+		// Add indexes
+		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".index"); idx++) {
+			loc->addIndex(config->get("location." + util::itos(i) + ".index." + util::itos(idx)));
+		}
+		if (config->key_size("location." + util::itos(i) + ".index") == 0)
+			loc->addIndex(config->get("location." + util::itos(i) + ".index"));
+		// Add methods
+		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".allow_method"); idx++) {
+			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method." + util::itos(idx)));
+		}
+		if (config->key_size("location." + util::itos(i) + ".allow_method") == 0)
+			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method"));
+		_locations.push_back(loc);
+	}
+	// Only one location
+	if (config->key_size("location") == 0) {
+		Location *loc;
+		try {
+			loc = new Location(config->get("location.route"));
+		} catch (const char *message) {
+			logger.error(message);
+			return;
+		}
+		loc->setRoot(config->get("location.root"));
+		loc->setDirectoryList(config->get("location.directory_listing"));
+		// Add indexes
+		for (int idx = 0; idx < config->key_size("location.index"); idx++) {
+			loc->addIndex(config->get("location.index." + util::itos(idx)));
+		}
+		if (config->key_size("location.index") == 0)
+			loc->addIndex(config->get("location.index"));
+		// Add methods
+		for (int idx = 0; idx < config->key_size("location.allow_method"); idx++) {
+			loc->addMethod(config->get("location.allow_method." + util::itos(idx)));
+		}
+		if (config->key_size("location.allow_method") == 0)
+			loc->addMethod(config->get("location.allow_method"));
+		_locations.push_back(loc);
+	}
 }
 
 std::vector<Listener> *Server::getListeners() { return &listeners; }
@@ -115,8 +144,6 @@ Response Server::getResponse(const std::string &bufferstr) {
 
 		try {
 			Request request(bufferstr);
-			// std::string bo = executeCgi(request, "cgi_tester", "Hola mundo");
-			// std::cout << "Cgi: " << bo << std::endl;
 			response = handle_request(request);
 		} 
 		catch(Request::RequestException &e)
@@ -131,7 +158,8 @@ Response Server::getResponse(const std::string &bufferstr) {
 	}
 
 	if (response.getStatusCode() >= 400) {
-		//response.setBody(getErrorPage(response.getStatusCode()));
+		std::string body = getErrorPage(response); 
+		response.setBody(body);
 		response.addHeader("Content-Length", util::itos(response.getBody().size()));
 		response.addHeader("Content-Type", "text/html");
 	}
@@ -139,14 +167,9 @@ Response Server::getResponse(const std::string &bufferstr) {
 	// logger.debug("Response raw: " + response.toString());
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
 
-	// TODO body de prueba
-	/*
-	std::string b = defaultErrorPage(response);
-	response.setBody(b);*/
-	////
-
 	return response;
 }
+
 Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
@@ -183,11 +206,18 @@ Response Server::handle_request(Request request) {
 	return response;
 }
 
-/*
-std::string Server::getErrorPage(int status) {
-	return this->routes["*"].getErrorPage(status);
+std::string Server::getErrorPage(Response &response) {
+	if (!error_page.size())
+		return defaultErrorPage(response);
+
+	std::stringstream page;
+	std::ifstream file(error_page);
+	if (file.good()) {
+		page << file.rdbuf();
+		file.close();
+	}
+	return page.str();
 }
-*/
 
 std::string Server::defaultErrorPage(Response &response) {
 	std::stringstream page;
