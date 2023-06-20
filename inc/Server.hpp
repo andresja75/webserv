@@ -25,6 +25,7 @@ private:
 	std::vector<Location *> _locations;
 	std::string name;
 	std::string root_path;
+	std::string cgi_path;
 
 	Response handle_request(Request buffer);
 	Location* getLocation(const Request &request);

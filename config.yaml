@@ -1,6 +1,7 @@
 server:
   root: path/YoupiBanane/
   name: serverOne
+  cgi_path: tester
   listen:
     host: 127.0.0.1
     port: 8080
@@ -8,14 +9,14 @@ server:
     host: 0.0.0.0
     port: 7070
   location:
-    root: ./path/YoupiBanane
     route: /
+    root: ./path/YoupiBanane
     index: index.html
     allow_method: GET
     cgi: bla
   location:
-    root: ./path/YoupiBanane/Yeah
     route: /direc/
+    root: ./path/YoupiBanane/Yeah
     index: index.html
     index: not_happy.bad_extension
     allow_method: GET

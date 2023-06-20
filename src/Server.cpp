@@ -31,6 +31,7 @@ Server::Server(Config *config) {
 	std::string name = config->get("name");
 	this->name = name.size() ? name : "Server";
 	this->root_path = config->get("root");
+	this->cgi_path = config->get("cgi_path");
 	addListeners(config);
 	if (listeners.size() == 0)
 		throw "Cannot init server because there is no listener.";
