@@ -5,9 +5,9 @@
 //Constructors and destructor of Location class
 
 Location::Location(std::string location)
-	:_location(location), _root("")
+	:_location(location), _root("/")
 {
-
+	this->_allow_methods.push_back("GET");
 }
 
 
@@ -25,7 +25,7 @@ bool Location::addIndex(std::string index)
 {
 	std::vector<std::string>::iterator it =
 		std::find(this->_indexes.begin(), this->_indexes.end(), index);
-	if(it == this->_indexes.end())
+	if(it != this->_indexes.end())
 		return false;
 
 	this->_indexes.push_back(index);
@@ -37,7 +37,7 @@ bool Location::addMethod(std::string method)
 {
 	std::vector<std::string>::iterator it =
 		std::find(this->_allow_methods.begin(), this->_allow_methods.end(), method);
-	if(it == this->_allow_methods.end())
+	if(it != this->_allow_methods.end())
 		return false;
 
 	this->_allow_methods.push_back(method);
@@ -76,3 +76,19 @@ std::vector<std::string>::iterator Location::getAllowMethodsEnd(void)
 	return this->_allow_methods.end();
 }
 
+//This function returns and the root path to resource
+std::string Location::getRoot(void) const
+{
+	return this->_root;
+}
+
+//This function checks if a given method is on location
+bool Location::checkMethod(std::string method)
+{
+	std::vector<std::string>::iterator it = std::find(this->_allow_methods.begin(),
+			this->_allow_methods.end(), method);
+
+	if(it == this->_allow_methods.end())
+		return false;
+	return true;
+}

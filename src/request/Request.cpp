@@ -127,7 +127,7 @@ void Request::insert_body(const std::string &body)
 	if(number_of_bytes != "")
 	{
 		num_bytes = util::stoi(number_of_bytes);
-		if (num_bytes == 0)
+		if (num_bytes == -1)
 			logger.error("Error parsing Content-Length, malformed number");
 		this->_body = body.substr(0, num_bytes);
 	}

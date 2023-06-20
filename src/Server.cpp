@@ -7,10 +7,6 @@ Server::Server() {
 	this->listeners.push_back(Listener("0.0.0.0", 80));
 	this->name = "Server";
 
-	Location *l = new Location("/www");
-	l->setRoot("www/");
-	l->addIndex("index.html");
-	this->_locations.push_back(l);
 	init();
 }
 
@@ -28,6 +24,30 @@ Server::~Server() {
 }
 
 Server::Server(Config *config) {
+	
+	/*Borrar despues*/
+	Location *l = new Location("/");
+	l->setRoot("./www");
+	l->addIndex("index.html");
+	l->addIndex("prueba.html");
+	this->_locations.push_back(l);
+	Location *l1 = new Location("/directorio_1/");
+	l1->setRoot("./paginas_2");
+	l1->addIndex("index.html");
+	l1->addMethod("PUT");
+
+	this->_locations.push_back(l1);
+	Location *l2 = new Location("/directorio_/");
+	l2->setRoot("./paginas");
+	l2->addIndex("index.html");
+	l2->addIndex("noticias.html");
+	this->_locations.push_back(l2);
+	Location *l3 = new Location("/directorio_1/index.html/");
+	l3->setRoot("./paginas");
+	l3->addIndex("index.html");
+	this->_locations.push_back(l3);
+	/*-----------------*/
+
 	logger.debug("Init server");
 	if (!config)
 		throw "There is no config for the server";
@@ -116,8 +136,9 @@ Response Server::getResponse(const std::string &bufferstr) {
 	// logger.debug("Content-Length: " + response.getHeader("Content-Length"));
 
 	// TODO body de prueba
+	/*
 	std::string b = defaultErrorPage(response);
-	response.setBody(b);
+	response.setBody(b);*/
 	////
 
 	return response;
@@ -126,18 +147,29 @@ Response Server::handle_request(Request request) {
 
 	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
 
+	Location *loc = getLocation(request);
 	Response response;
-	if (request.getMethod() == "GET") {
-		response = handle_get(request);
-	} /*else if (request.getMethod() == "POST") {
-		response = handle_post(request, path);
-	} else if (request.getMethod() == "DELETE") {
-		response = handle_delete(request, path);
-	} else if (request.getMethod() == "PUT") {
-		response = handle_put(request, path);
-	} */else {
+
+	//This means resource is not found	
+	if(loc == NULL)
+		response.setStatusCode(404);
+	else if(loc->checkMethod(request.getMethod()) == false)
 		response.setStatusCode(405);
+	else
+	{
+		if (request.getMethod() == "GET") {
+			response = handle_get(request, loc);
+		} /*else if (request.getMethod() == "POST") {
+			response = handle_post(request, path);
+		} else if (request.getMethod() == "DELETE") {
+			response = handle_delete(request, path);
+		} */
+		else if (request.getMethod() == "PUT") {
+			response = handle_put(request, loc);
+		} else {
+			response.setStatusCode(405);
 	}
+}
 
 
 	response.addHeader("Connection", "close");
@@ -200,20 +232,72 @@ void Server::setIndex(const std::string& index) {
 }
 */
 
-Response Server::handle_get(const Request& request) {
+Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
+	
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + "/" + aux;
 
-	std::string file_path = request.getPath();
-	std::cout<<"complete: "<<file_path<<std::endl;
-	for(std::vector<Location *>::iterator it = this->_locations.begin();
-			it != this->_locations.end(); it++)
+	logger.debug("File path: " + file_path);
+	logger.debug("request path: " + request.getResource());
+	
+	//First we check if it is a directory or a file
+	if(file_path[file_path.size() - 1] == '/')
 	{
-		if((*it)->getLocation() == request.getResource())
-			break;
-	}
+		std::string absolute_path = "";
+		std::cout<<"Directory"<<std::endl;
+		std::vector<std::string>::iterator it;
+		
+		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
+		{
+			absolute_path = file_path + (*it);
+			std::cout<<absolute_path<<std::endl;
+			//We check if file exists
+			std::ifstream file(absolute_path.c_str());
+			if (file.good())
+				break;
+			absolute_path = "";
+		}
 
-	// logger.debug("File path: " + file_path);
-	/*
+		//We check if iterator is pointing end meaning file could not be found
+		if(it == loc->getIndexEnd())
+		{
+			// logger.error("File not found");
+			return Response(404);	
+		}
+		
+
+		//if exists we introduce the content in the body
+		std::ifstream file(absolute_path.c_str());
+		std::string file_content;
+		std::string line;
+		while (std::getline(file, line, '\n')) {
+			file_content += line + "\n";
+		}
+		response.setBody(file_content);
+
+
+	}
+	//if it doesnt pass through if, then comes here, it means target is a file
+	else
+	{
+		std::cout<<"File"<<std::endl;
+		//We check if file exists
+		std::ifstream file(file_path.c_str());
+		if (!file.good()) {
+			// logger.error("File not found");
+			return Response(404);
+		}
+
+		//if file exists we introduce the content in the body
+		std::string file_content;
+		std::string line;
+		while (std::getline(file, line, '\n')) {
+			file_content += line + "\n";
+		}
+		response.setBody(file_content);
+	}
+/*
 	if (file_path.find(getRootPath()) != 0) {
 		// logger.error("Invalid path");
 		return Response(403);
@@ -290,18 +374,68 @@ Response Server::handle_delete(const Request& request, const std::string& path) 
 
 	return response;
 }
+*/
 
-Response Server::handle_put(const Request& request, const std::string& path) {
+Response Server::handle_put(Request& request, Location *loc) {
 	Response response(201);
-	std::string file_path = util::combine_path(getRootPath(), path, true);
-	std::string directory = file_path.substr(0, file_path.rfind("/"));
-	struct stat st = {};
 
-	if (directory.size() && stat(directory.c_str(), &st) == -1)
-		mkdir(directory.c_str(), 0700);
-	std::ofstream file(file_path.c_str());
-	if (!file.is_open())
-		return Response(500);
+
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + "/" + aux;
+
+	logger.debug("File path: " + file_path);
+	logger.debug("request path: " + request.getResource());
+	
+	//Now we check if what we have received is a file or directory
+	if(file_path[file_path.size() - 1] != '/')
+	{
+		//If it reach this point is a file
+		//Making directory if not exists
+		std::string directory = file_path.substr(0, file_path.rfind("/"));
+		std::cout<<"Directory: "<<directory<<std::endl;
+    	struct stat st;
+		if (directory.size() && stat(directory.c_str(), &st) == -1)
+			mkdir(directory.c_str(), 0700);
+
+		//Check if file already exist, if exist then 204 code, if not 201 code
+		if(access(file_path.c_str(), F_OK) == 0)
+			response.setStatusCode(204);
+		else
+			response.setStatusCode(201);
+
+		//Now introduce the content on target file, and create resource
+		std::ofstream file(file_path.c_str());
+		if (!file.is_open())
+			return Response(500);
+
+		std::string file_content = request.getBody();
+		//Check if body is chunked
+		std::string header_chunked = request.getHeader("Transfer-Encoding");
+		if (header_chunked.compare("chunked") == 0) {
+			size_t size = 1;
+			int i = 0;
+			while (size) {
+				size_t count = file_content.find("\r\n", i) - i;
+				size = util::hex_str_to_dec(file_content.substr(i, count));
+				size_t start = file_content.find("\r\n", i) + 2;
+				file << file_content.substr(start, size);
+				i = start + size + 2;
+			}
+		} else {
+			//If it is not chunked introduce content
+			file << file_content;
+		}
+		file.close();
+	}
+	else
+	{
+		//If we reach this point is a directory
+		//It means we are trying to create a directory
+		response.setStatusCode(400);
+	}
+	/*
+
+
 
 	std::string file_content = request.getBody();
 	if (request.getHeader("Transfer-Encoding").find("chunked") != std::string::npos) {
@@ -318,10 +452,12 @@ Response Server::handle_put(const Request& request, const std::string& path) {
 		file << file_content;
 	}
 	file.close();
-
+	*/
 	return response;
+
 }
 
+/*
 // Return the path of the cgi binary or an empty string
 std::string Server::getCgiPath(const std::string &file_path) {
 	std::string::size_type n = file_path.rfind(".");
@@ -337,3 +473,38 @@ std::string Server::getCgiPath(const std::string &file_path) {
 	return "";
 }
 */
+
+Location* Server::getLocation(const Request& request)
+{
+	std::string file_path = request.getResource();
+	std::string aux = "";
+	Location *l;
+	unsigned long len;
+	unsigned long coincidence;
+
+	coincidence = 0;
+	l = NULL;
+	for(std::vector<Location *>::iterator it = this->_locations.begin();
+			it != this->_locations.end(); it++)
+	{
+		len = (*it)->getLocation().size();
+		aux = file_path.substr(0, len);
+
+		if((*it)->getLocation().compare(aux) == 0)
+		{
+			if(l == NULL)
+			{
+				coincidence = len;
+				l = (*it);
+			}
+			if(len > coincidence)
+			{
+				l = (*it);
+				coincidence = len;
+			}
+		}
+	}
+
+
+	return l;
+}
