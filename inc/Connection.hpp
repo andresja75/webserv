@@ -15,17 +15,19 @@ class Connection
 {
 public:
     Connection(int socket);
-    Connection(int socket, struct sockaddr_in address);
+    Connection(int socket, const std::string &max_size);
+    Connection(int socket, const std::string &max_size, struct sockaddr_in address);
 
 private:
     Connection();
 
     int _socket;
-    struct sockaddr_in _address;
+    struct sockaddr_in _address; // Save client address but we don't use it
     std::string _request;
     std::string _response;
     size_t send_pos;
     bool finish_request;
+    int _max_request_size;
 
 public:
 	int index;

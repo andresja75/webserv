@@ -82,7 +82,7 @@ int Cluster::checkListeners(struct pollfd *fds) {
                     logger.error("Failed to set socket to non-blocking");
                     return -1;
                 }
-                connections->push_back(new Connection(new_socket, (*listeners)[n].getClientAddress()));
+                connections->push_back(new Connection(new_socket, _servers[i]->getMaxSize(), (*listeners)[n].getClientAddress()));
             }
         }
     }
@@ -119,6 +119,13 @@ void Cluster::checkConnections(struct pollfd *fds) {
                     Response response = _servers[i]->getResponse((*connectIt)->getRequest());
                     (*connectIt)->setResponse(response.toString());
                     logger.log("Response: " + util::itos(response.getStatusCode()));
+                }
+                // If reach maximum request size
+                if (r_recv == -2) {
+                    Response response(413);
+                    (*connectIt)->setResponse(response.toString());
+                    logger.error("Reach maximun request size");
+                    break;
                 }
                 // If an error in read
                 if (r_recv < 0) {

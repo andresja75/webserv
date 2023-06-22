@@ -44,6 +44,7 @@ public:
 	Response getResponse(const std::string &bufferstr);
 	std::vector<Listener> *getListeners();
 	std::vector<Connection *> *getConnections();
+	std::string &getMaxSize();
 
 	void setRootPath(const std::string &rootPath);
 	void setErrorPage(int status, const std::string& path);

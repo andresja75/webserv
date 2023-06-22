@@ -1,6 +1,5 @@
 - A request to your server should never hang forever
 - You need at least GET, POST, and DELETE methods.
-- Limit client body size.
 - Locations:
     - Turn on or off directory listing.
     - Set a default file to answer if the request is a directory.

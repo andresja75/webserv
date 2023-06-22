@@ -154,6 +154,7 @@ void Server::addLocations(Config *config) {
 
 std::vector<Listener> *Server::getListeners() { return &listeners; }
 std::vector<Connection *> *Server::getConnections() { return &connections; }
+std::string &Server::getMaxSize() { return max_request_size; }
 
 Response Server::getResponse(const std::string &bufferstr) {
 

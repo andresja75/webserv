@@ -6,9 +6,16 @@ Connection::Connection(int socket)
 	memset(&_address, 0, sizeof(_address));
 }
 
-Connection::Connection(int socket, struct sockaddr_in address)
+Connection::Connection(int socket, const std::string &max_size)
+	: _socket(socket), send_pos(0), finish_request(false), index(-1) {
+		_max_request_size = util::stoi(max_size);
+	}
+
+Connection::Connection(int socket, const std::string &max_size, struct sockaddr_in address)
 	: _socket(socket), _address(address), send_pos(0), finish_request(false),
-	index(-1) {}
+	index(-1) {
+		_max_request_size = util::stoi(max_size);
+	}
 
 int Connection::getSocket() const { return _socket; }
 
@@ -27,12 +34,15 @@ ssize_t Connection::recv() {
 	ssize_t valread = 1;
 
 	valread = ::recv(_socket, buffer, READ_BUFFER_SIZE, 0);
-	if (valread > 0) {
+	if (valread > 0 && _request.size() < (size_t)_max_request_size) {
 		_request += buffer;
 	}
 
-	if (completeRequest())
+	if (completeRequest()) {
+		if (_request.size() > (size_t)_max_request_size)
+			return -2;
 		return 0;
+	}
     return valread;
 }
 
