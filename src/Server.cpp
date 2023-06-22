@@ -312,7 +312,7 @@ Response Server::handle_get(const Request& request, Location *loc) {
 		std::string absolute_path = "";
 		std::cout<<"Directory"<<std::endl;
 		std::vector<std::string>::iterator it;
-		
+	
 		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
 		{
 			absolute_path = file_path + (*it);
@@ -323,41 +323,53 @@ Response Server::handle_get(const Request& request, Location *loc) {
 				break;
 			absolute_path = "";
 		}
-
-		//We check if iterator is pointing end, meaning file could not be found
-		if(loc->getDirectoryList() == true)
+		
+		if(it != loc->getIndexEnd())
 		{
+			//if exists we introduce the content in the body
+			std::ifstream file(absolute_path.c_str());
+			std::string file_content;
+			std::string line;
+			while (std::getline(file, line, '\n')) 
+			{
+				file_content += line + "\n";
+			}
+			response.setBody(file_content);
+		}
+		//We check if iterator is pointing end, meaning file could not be found
+		else if(loc->getDirectoryList() == true)
+		{
+			std::string body = "<!DOCTYPE html>\n"
+								"<html>\n"
+									"<head>\n"
+										"<title>Directories</title>\n"
+									"</head>\n"
+									"<body>\n"
+										"<ul>\n";
 			DIR *d;
 			struct dirent *dir;
 
 			d = opendir(file_path.c_str());
 			while((dir = readdir(d)) != NULL)
 			{
-				std::cout<<dir->d_name<<std::endl;
+				std::string file = "";
+				file = dir->d_name;
 				if(dir->d_type == DT_REG)
-					std::cout<<"File"<<std::endl;
-				else
-					std::cout<<"Directory"<<std::endl;
+					body += ("<li><a href=\"" + file + "\">" + file + "</a></li>\n");
+				else	
+					body += ("<li><a href=\"" + file + "/\">" + file + "/</a></li>\n");
 			}
+			body += "</ul>\n"
+					"</body>\n"
+					"</html>";
+			response.setBody(body);
+			return response;
 
-		}
-		else if(it == loc->getIndexEnd())
-		{
+		}else
+		{	
 			// logger.error("File not found");
 			return Response(404);	
 		}
-		
-
-		//if exists we introduce the content in the body
-		std::ifstream file(absolute_path.c_str());
-		std::string file_content;
-		std::string line;
-		while (std::getline(file, line, '\n')) {
-			file_content += line + "\n";
-		}
-		response.setBody(file_content);
-
-
 	}
 	//if it doesnt pass through if, then comes here, it means target is a file
 	else
