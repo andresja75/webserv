@@ -293,8 +293,24 @@ Response Server::handle_get(const Request& request, Location *loc) {
 			absolute_path = "";
 		}
 
-		//We check if iterator is pointing end meaning file could not be found
-		if(it == loc->getIndexEnd())
+		//We check if iterator is pointing end, meaning file could not be found
+		if(loc->getDirectoryList() == true)
+		{
+			DIR *d;
+			struct dirent *dir;
+
+			d = opendir(file_path.c_str());
+			while((dir = readdir(d)) != NULL)
+			{
+				std::cout<<dir->d_name<<std::endl;
+				if(dir->d_type == DT_REG)
+					std::cout<<"File"<<std::endl;
+				else
+					std::cout<<"Directory"<<std::endl;
+			}
+
+		}
+		else if(it == loc->getIndexEnd())
 		{
 			// logger.error("File not found");
 			return Response(404);	

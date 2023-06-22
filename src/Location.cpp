@@ -22,6 +22,7 @@ void Location::setRoot(std::string root)
 	this->_root = root;		
 }
 
+//This method is to set listing directory
 void Location::setDirectoryList(std::string listing) {
 	if (listing == "True" || listing == "true" || listing == "On" || listing == "on")
 		this->_directory_listing = true;
@@ -50,6 +51,19 @@ bool Location::addMethod(std::string method)
 		return false;
 
 	this->_allow_methods.push_back(method);
+	return true;
+}
+
+//This function add relations between error pages 
+bool Location::addErrorPage(unsigned int status_code, std::string &error_file)
+{
+	std::map<unsigned int, std::string>::iterator it =
+		this->_error_pages.find(status_code);
+
+	if(it != this->_error_pages.end())
+		return false;
+
+	this->_error_pages.insert(std::pair<unsigned int, std::string>(status_code, error_file));
 	return true;
 }
 
@@ -92,6 +106,29 @@ std::string Location::getRoot(void) const
 {
 	return this->_root;
 }
+
+//This function checks if there is a file for a given status code
+bool Location::checkErrorFile(unsigned int status_code)
+{
+	std::map<unsigned int, std::string>::iterator it = this->_error_pages.find(status_code);
+
+	if(it != this->_error_pages.end())
+		return true;
+
+	return false;
+}
+
+//This function takes a status code and return file path where file associated with error is
+std::string Location::getErrorFile(unsigned int status_code)
+{
+	std::string error_page = "";
+
+	std::map<unsigned int, std::string>::iterator it = this->_error_pages.find(status_code);
+	if(it != this->_error_pages.begin())
+		error_page = it->second;
+	return error_page;
+}
+
 
 //This function checks if a given method is on location
 bool Location::checkMethod(std::string method)
