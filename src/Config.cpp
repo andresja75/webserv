@@ -51,9 +51,14 @@ void Config::insert_config(std::string key, std::string value) {
 		_config.insert(std::make_pair(key, Config(value)));
 		return;
 	}
-	Config &old_values = k->second;
-	_config[key] = Config("0", old_values);
-	_config[key].insert_config("1", value);
+	int size = key_size(key);
+	if (size == 0) {
+		Config &old_values = k->second;
+		_config[key] = Config("0", old_values);
+		_config[key].insert_config("1", value);
+	} else {
+		_config[key].insert_config(util::itos(size), value);
+	}
 }
 
 void Config::parse_key_values(t_lines &lines) {

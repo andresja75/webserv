@@ -23,10 +23,10 @@ private:
 	std::vector<Listener> listeners;
 	std::vector<Connection *> connections;
 	std::vector<Location *> _locations;
+	std::map<int, std::string> error_pages;
 	std::string name;
 	std::string root_path;
 	std::string cgi_path;
-	std::string error_page;
 	std::string max_request_size;
 
 	Response handle_request(Request buffer);
@@ -50,6 +50,7 @@ public:
 	void setIndex(const std::string& index);
 
 	void addListeners(Config *config);
+	void addErrorPages(Config *config);
 	void addLocations(Config *config);
 
 	std::string defaultErrorPage(Response &response);

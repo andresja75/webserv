@@ -35,11 +35,11 @@ Server::Server(Config *config) {
 	this->name = name.size() ? name : "Server";
 	this->root_path = config->get("root");
 	this->cgi_path = config->get("cgi_path");
-	this->error_page = config->get("error_page");
 	this->max_request_size = config->get("max_request_size");
 	addListeners(config);
 	if (listeners.size() == 0)
 		throw "Cannot init server because there is no listener.";
+	addErrorPages(config);
 	addLocations(config);
 	logger.debug("Server created");
 }
@@ -69,6 +69,31 @@ void Server::addListeners(Config *config) {
 			listeners.push_back(listener);
 			logger.log("Listen on " + config->get("listen.host")
 				+ ":" + config->get("listen.port"));
+		} catch (const char *message) {
+			logger.error(message);
+		}
+	}
+}
+
+void Server::addErrorPages(Config *config) {
+	// Many errorPages
+	for (int i = 0; i < config->key_size("error_page") && i < MAX_CONNECTION; i++) {
+		try {
+			int status = util::stoi(config->get("error_page." + util::itos(i) + ".status_code"));
+			error_pages[status] = config->get("error_page." + util::itos(i) + ".path");
+			logger.log("error_page for " + config->get("error_page." + util::itos(i) + ".status_code")
+				+ ": " + config->get("error_page." + util::itos(i) + ".path"));
+		} catch (const char *message) { // TODO control errors properly
+			logger.error(message);
+		}
+	}
+	// Only one errorPage
+	if (config->key_size("error_page") == 0) {
+		try {
+			int status = util::stoi(config->get("error_page.status_code"));
+			error_pages[status] = config->get("error_page.path");
+			logger.log("error_page for " + config->get("error_page.status_code")
+				+ ": " + config->get("error_page.path"));
 		} catch (const char *message) {
 			logger.error(message);
 		}
@@ -207,11 +232,17 @@ Response Server::handle_request(Request request) {
 }
 
 std::string Server::getErrorPage(Response &response) {
-	if (!error_page.size())
+	std::string path;
+	try {
+		path = error_pages.at(response.getStatusCode());
+	} catch (...) {
+		logger.debug("There is no page in config for this error");
+	}
+	if (!path.size())
 		return defaultErrorPage(response);
 
 	std::stringstream page;
-	std::ifstream file(error_page);
+	std::ifstream file(path);
 	if (file.good()) {
 		page << file.rdbuf();
 		file.close();
