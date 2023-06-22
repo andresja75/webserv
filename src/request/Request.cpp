@@ -243,9 +243,9 @@ void Request::show_headers_info(void)
 
 //Method to give the target file specified like parameter in function,
 //is case-sensitive
-std::string Request::getHeader(std::string header)
+std::string Request::getHeader(std::string header) const
 {
-	std::map<std::string, std::string>::iterator it = this->_header_fields.find(header);
+	std::map<std::string, std::string>::const_iterator it = this->_header_fields.find(header);
 
 	if(it == this->_header_fields.end())
 		return "";
@@ -253,7 +253,7 @@ std::string Request::getHeader(std::string header)
 	return it->second;
 }
 
-std::map<std::string, std::string> *Request::getHeaders() { return (&this->_header_fields); }
+const std::map<std::string, std::string> *Request::getHeaders() const { return (&this->_header_fields); }
 
 //Method to get the verb used in the request
 std::string Request::getMethod(void) const

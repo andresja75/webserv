@@ -212,12 +212,11 @@ Response Server::handle_request(Request request) {
 	{
 		if (request.getMethod() == "GET") {
 			response = handle_get(request, loc);
-		} /*else if (request.getMethod() == "POST") {
-			response = handle_post(request, path);
-		}*/ else if (request.getMethod() == "DELETE") {
+		} else if (request.getMethod() == "POST") {
+			response = handle_post(request, loc);
+		} else if (request.getMethod() == "DELETE") {
 			response = handle_delete(request, loc);
-		} 
-		else if (request.getMethod() == "PUT") {
+		} else if (request.getMethod() == "PUT") {
 			response = handle_put(request, loc);
 		} else {
 			response.setStatusCode(405);
@@ -434,24 +433,15 @@ Response Server::handle_get(const Request& request, Location *loc) {
 */
 	return response;
 }
-/*
-Response Server::handle_post(const Request& request, const std::string& path) {
-	// TODO hardcodeo la configuracion para el tester
-	if (request.getPath().find("post_body") != std::string::npos) {
-		if (request.getBodySize() > 100)
-			return Response(413);
-	}
-	else if (!request.getBodySize()) {
-		return Response(405);
-	}
 
-	Response response(200);
-	std::string file_path = util::combine_path(getRootPath(), path, true);
+Response Server::handle_post(const Request& request, Location *loc) {
+	Response response;
+	std::string aux = request.getResource().substr(loc->getLocation().size());
+	std::string file_path = loc->getRoot() + "/" + aux;
 	std::string file_content = request.getBody();
 
-	std::string cgiBinPath = getCgiPath(file_path);
-	if (cgiBinPath.size()) {
-		file_content = util::executeCgi(request, cgiBinPath, file_content);
+	if (cgi_path.size()) {
+		file_content = executeCgi(request, cgi_path, file_content);
 		// Quito los headers del cgi_tester
 		if (file_content.find("\r\n\r\n") + 4 < file_content.size()) {
 			file_content = file_content.substr(file_content.find("\r\n\r\n") + 4);
@@ -460,12 +450,10 @@ Response Server::handle_post(const Request& request, const std::string& path) {
 	response.setBody(file_content);
 	return response;
 }
-*/
 
 //This function handle delete verb
 Response Server::handle_delete(const Request& request, Location *loc) {
 	Response response;
-
 
 	std::string aux = request.getResource().substr(loc->getLocation().size());
 	std::string file_path = loc->getRoot() + "/" + aux;
@@ -498,7 +486,6 @@ Response Server::handle_delete(const Request& request, Location *loc) {
 		//File not exists
 		response.setStatusCode(404);
 	}
-
 
 	return response;
 }
@@ -647,7 +634,6 @@ Location* Server::getLocation(const Request& request)
 			}
 		}
 	}
-
 
 	return l;
 }

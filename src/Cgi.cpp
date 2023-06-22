@@ -22,8 +22,8 @@ static void setup_timer(long seconds) {
     setitimer(ITIMER_REAL, &timer, NULL);
 }
 
-static char **getEnv(Request &request) {
-    std::map<std::string, std::string> *headers = request.getHeaders();
+static char **getEnv(const Request &request) {
+    const std::map<std::string, std::string> *headers = request.getHeaders();
     char **env = new char*[4 + headers->size()];
     int i = 0;
 
@@ -34,7 +34,7 @@ static char **getEnv(Request &request) {
     str = "PATH_INFO=" + request.getPath();
     env[i++] = strdup(str.c_str());
 
-    std::map<std::string, std::string>::iterator it = headers->begin();
+    std::map<std::string, std::string>::const_iterator it = headers->begin();
     for (; it != headers->end(); it++) {
         std::string key = it->first;
         for (size_t j=0; j < key.size(); j++) {
@@ -50,7 +50,7 @@ static char **getEnv(Request &request) {
     return env;
 }
 
-std::string executeCgi(Request &request, const std::string &cgiBinPath, std::string file_content) {
+std::string executeCgi(const Request &request, const std::string &cgiBinPath, std::string file_content) {
     (void)file_content;
 
     char **env = getEnv(request);

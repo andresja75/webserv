@@ -50,8 +50,8 @@ class Request
 		//Method to parse the url, and get the resource and query params
 		bool parse_url(void);
 		void show_headers_info(void);
-		std::string getHeader(std::string header);
-		std::map<std::string, std::string> *getHeaders();
+		std::string getHeader(std::string header) const;
+		const std::map<std::string, std::string> *getHeaders() const;
 
 		//Method to give information about request
 		std::string getMethod(void) const;

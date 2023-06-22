@@ -8,7 +8,6 @@
 #include "Config.hpp"
 #include "request/Request.hpp"
 #include "response/Response.hpp"
-// #include "MimeTypes.hpp"
 #include "Listener.hpp"
 #include "Connection.hpp"
 #include "util.hpp"
@@ -57,10 +56,8 @@ public:
 	std::string defaultErrorPage(Response &response);
 
 	Response handle_get(const Request& request, Location *loc);
-
-	//Response handle_post(const Request& request, const std::string& path);
+	Response handle_post(const Request& request, Location *loc);
 	Response handle_delete(const Request& request, Location *loc);
-
 	Response handle_put(Request& request, Location *loc);
 
 	//std::string getCgiPath(const std::string &file_path);

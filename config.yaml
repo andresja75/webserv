@@ -27,6 +27,7 @@ server:
     index: not_happy.bad_extension
     allow_method: GET
     allow_method: DELETE
+    allow_method: POST
     allow_method: PUT
     cgi: bla
 

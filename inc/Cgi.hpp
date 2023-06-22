@@ -18,6 +18,6 @@
 #define CGI_BUFSIZE 20
 #define CGI_TIMELIMIT 30
 
-std::string executeCgi(Request &request, const std::string &cgiBinPath, std::string file_content);
+std::string executeCgi(const Request &request, const std::string &cgiBinPath, std::string file_content);
 
 #endif
