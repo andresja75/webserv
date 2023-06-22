@@ -5,7 +5,7 @@
 //Constructors and destructor of Location class
 
 Location::Location(std::string location)
-	:_location(location), _root("/")
+	:_location(location), _root("./")
 {
 	if (_location[_location.size() - 1] != '/')
 		throw "The root of the location should finish with /"; 
