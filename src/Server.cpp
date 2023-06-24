@@ -136,10 +136,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 	}
 
 	if (response.getStatusCode() >= 400) {
-		std::string body = getErrorPage(response); 
-		response.setBody(body);
-		response.addHeader("Content-Length", util::itos(response.getBody().size()));
-		response.addHeader("Content-Type", "text/html");
+		putErrorPage(response);
 	}
 
 	// logger.debug("Response raw: " + response.toString());
@@ -182,23 +179,31 @@ Response Server::handle_request(Request request) {
 	return response;
 }
 
-std::string Server::getErrorPage(Response &response) {
+void Server::putErrorPage(Response &response) {
+	std::string body;
 	std::string path;
 	try {
 		path = error_pages.at(response.getStatusCode());
 	} catch (...) {
 		logger.debug("There is no page in config for this error");
 	}
-	if (!path.size())
-		return defaultErrorPage(response);
 
-	std::stringstream page;
-	std::ifstream file(path);
-	if (file.good()) {
-		page << file.rdbuf();
-		file.close();
+	if (!path.size()) {
+		body = defaultErrorPage(response);
 	}
-	return page.str();
+	else {
+		std::stringstream page;
+		std::ifstream file(path);
+		if (file.good()) {
+			page << file.rdbuf();
+			file.close();
+		}
+		body = page.str();
+	}
+
+	response.setBody(body);
+	response.addHeader("Content-Length", util::itos(response.getBody().size()));
+	response.addHeader("Content-Type", "text/html");
 }
 
 std::string Server::defaultErrorPage(Response &response) {

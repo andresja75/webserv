@@ -125,6 +125,7 @@ void Cluster::checkConnections(struct pollfd *fds) {
                 // If reach maximum request size
                 if (r_recv == -2) {
                     Response response(413);
+                    _servers[i]->putErrorPage(response);
                     (*connectIt)->setResponse(response.toString());
                     logger.error("Reach maximun request size");
                     break;

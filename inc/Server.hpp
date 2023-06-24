@@ -42,7 +42,6 @@ public:
 	~Server();
 
 	const std::string &getRootPath() const;
-	std::string getErrorPage(Response &response);
 	Response getResponse(const std::string &bufferstr);
 	std::vector<Listener> *getListeners();
 	std::vector<Connection *> *getConnections();
@@ -56,6 +55,7 @@ public:
 	void addErrorPages(Config *config);
 	void addLocations(Config *config);
 
+	void putErrorPage(Response &response);
 	std::string defaultErrorPage(Response &response);
 
 	Response handle_get(const Request& request, Location *loc);
