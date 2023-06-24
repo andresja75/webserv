@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <dirent.h>
+#include <ctime>
 
 namespace util {
     //std::string executeCgi(const Request &request, const std::string &cgiBinPath, std::string file_content);
@@ -14,6 +15,7 @@ namespace util {
     void remove_whitespaces(std::string &str);
     std::string get_extension(const std::string &str);
     std::string getDirectoryList(std::string file_path);
+    std::string getDate();
 }
 
 #endif

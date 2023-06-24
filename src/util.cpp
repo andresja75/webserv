@@ -72,3 +72,11 @@ std::string util::getDirectoryList(std::string file_path) {
             "</html>";
     return body;
 }
+
+std::string util::getDate() {
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    char *date = new char[80];
+    strftime(date, 80, "%a, %d %b %Y %H:%M:%S %Z", ltm);
+    return std::string(date);
+}

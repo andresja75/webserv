@@ -225,10 +225,9 @@ Response Server::handle_request(Request request) {
 	}
 }
 
-
 	response.addHeader("Connection", "close");
 	response.addHeader("Server", name);
-	//response.addHeader("Date", util::datetime("%a, %d %b %Y %H:%M:%S %Z"));
+	response.addHeader("Date", util::getDate());
 
 	return response;
 }
