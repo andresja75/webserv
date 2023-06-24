@@ -23,3 +23,17 @@ int util::hex_str_to_dec(const std::string &str) {
     ss >> std::hex >> num;
     return num;
 }
+
+void util::remove_whitespaces(std::string &str) {
+    if (!str.size())
+        return;
+    size_t start = 0;
+    while (start < str.size() && std::isspace(str.at(start)))
+        start++;
+
+    int end = (int)str.size() - 1;
+    while (end > 0 && std::isspace(str.at(end)))
+        end--;
+
+    str = str.substr(start, end + 1);
+}

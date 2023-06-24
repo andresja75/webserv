@@ -46,6 +46,11 @@ t_lines Config::split_lines(std::string str, std::string delim) {
 }
 
 void Config::insert_config(std::string key, std::string value) {
+	util::remove_whitespaces(key);
+	util::remove_whitespaces(value);
+	if (!key.size() || !value.size()) {
+		throw "Wrong config => missing key or value";
+	}
     t_config::iterator k = _config.find(key);
     if (k == _config.end()) {
 		_config.insert(std::make_pair(key, Config(value)));
