@@ -1,15 +1,17 @@
 #ifndef CONNECTION_HPP
 # define CONNECTION_HPP
 
-# include <string.h>
+# include <cstring>
 # include <string>
-# include <unistd.h>
 # include <map>
+# include <ctime>
+# include <unistd.h>
 # include <sys/socket.h>
 # include <arpa/inet.h>
 # include "util.hpp"
 
 # define READ_BUFFER_SIZE 1024
+# define TIMEOUT 30
 
 class Connection
 {
@@ -28,6 +30,7 @@ private:
     size_t send_pos;
     bool finish_request;
     int _max_request_size;
+    time_t init;
 
 public:
 	int index;
@@ -35,6 +38,7 @@ public:
     const std::string &getRequest();
     const std::string &getResponse();
     bool isFinishRequest() const;
+    bool checkTimeout();
     void setResponse(std::string resp);
     bool completeRequest();
     ssize_t recv();

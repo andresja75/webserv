@@ -1,21 +1,23 @@
 #include "../inc/Connection.hpp"
-#include <iostream>
 
 Connection::Connection(int socket)
 	: _socket(socket), send_pos(0), finish_request(false), index(-1) {
 	memset(&_address, 0, sizeof(_address));
+	init = time(0);
 }
 
 Connection::Connection(int socket, const std::string &max_size)
 	: _socket(socket), send_pos(0), finish_request(false), index(-1) {
-		_max_request_size = util::stoi(max_size);
-	}
+	_max_request_size = util::stoi(max_size);
+	init = time(0);
+}
 
 Connection::Connection(int socket, const std::string &max_size, struct sockaddr_in address)
 	: _socket(socket), _address(address), send_pos(0), finish_request(false),
 	index(-1) {
-		_max_request_size = util::stoi(max_size);
-	}
+	_max_request_size = util::stoi(max_size);
+	init = time(0);
+}
 
 int Connection::getSocket() const { return _socket; }
 
@@ -27,6 +29,14 @@ bool Connection::isFinishRequest() const { return finish_request; }
 
 void Connection::setResponse(std::string resp) {
 	_response = resp;
+}
+
+bool Connection::checkTimeout() {
+	if (time(0) > init + TIMEOUT) {
+		close(_socket);
+		return true;
+	}
+	return false;
 }
 
 ssize_t Connection::recv() {

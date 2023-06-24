@@ -50,6 +50,14 @@ int Cluster::addSocketsToWatch(struct pollfd *fds) {
         std::vector<Connection *> *connections = _servers[i]->getConnections();
         std::vector<Connection *>::iterator connectIt = connections->begin();
         for (; connectIt != connections->end(); connectIt++) {
+            if ((*connectIt)->checkTimeout()) {
+                delete *connectIt;
+                connections->erase(connectIt);
+                logger.error("Timeout of connection");
+                break;
+            }
+        }
+        for (connectIt = connections->begin(); connectIt != connections->end(); connectIt++) {
             int client = (*connectIt)->getSocket();
             fds[nfds].fd = client;
             (*connectIt)->index = nfds;
