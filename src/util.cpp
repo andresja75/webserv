@@ -37,3 +37,11 @@ void util::remove_whitespaces(std::string &str) {
 
     str = str.substr(start, end + 1);
 }
+
+std::string util::get_extension(const std::string &str) {
+    std::string ext;
+	size_t pos = str.rfind(".");
+    if (pos != std::string::npos && str.size() > pos)
+        ext = str.substr(pos + 1);
+    return ext;
+}

@@ -34,12 +34,12 @@ ssize_t Connection::recv() {
 	ssize_t valread = 1;
 
 	valread = ::recv(_socket, buffer, READ_BUFFER_SIZE, 0);
-	if (valread > 0 && _request.size() < (size_t)_max_request_size) {
+	if (valread > 0 && (_max_request_size == 0 || _request.size() < (size_t)_max_request_size)) {
 		_request += buffer;
 	}
 
 	if (completeRequest()) {
-		if (_request.size() > (size_t)_max_request_size)
+		if (_max_request_size && _request.size() > (size_t)_max_request_size)
 			return -2;
 		return 0;
 	}
@@ -82,7 +82,6 @@ bool Connection::completeRequest() {
 		}
 
 		ssize_t	len = util::stoi(_request.substr(_request.find("Content-Length: ") + 16,  10));
-		std::cout<<"len: "<<len<<std::endl;
 		if (_request.size() >= len + i + 4)
 			return (finish_request = true, true);
 		else

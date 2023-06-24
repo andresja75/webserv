@@ -290,6 +290,7 @@ void Response::setBody(std::string& body)
 {
 	this->_body = body;
 	this->_body_length = this->_body.size();
+	addHeader("Content-Length", util::itos(this->_body_length));
 }
 
 std::string Response::toString() {

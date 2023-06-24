@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 #include <iostream>
+#include "../util.hpp"
 
 #define HTTP_PROTOCOL "HTTP/1.1"
 

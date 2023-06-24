@@ -99,6 +99,7 @@ void Cluster::checkConnections(struct pollfd *fds) {
 
             // If client closed connection
             if (idx >= 0 && fds[idx].revents & POLLHUP) {
+                logger.debug("Client close connection");
                 close((*connectIt)->getSocket());
                 delete *connectIt;
                 connections->erase(connectIt);
@@ -107,6 +108,7 @@ void Cluster::checkConnections(struct pollfd *fds) {
 
             // If client not open
             if (idx >= 0 && fds[idx].revents & POLLNVAL) {
+                logger.debug("Client is not open");
                 delete *connectIt;
                 connections->erase(connectIt);
                 break;

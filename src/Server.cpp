@@ -81,7 +81,7 @@ void Server::addErrorPages(Config *config) {
 		try {
 			int status = util::stoi(config->get("error_page." + util::itos(i) + ".status_code"));
 			error_pages[status] = config->get("error_page." + util::itos(i) + ".path");
-			logger.log("error_page for " + config->get("error_page." + util::itos(i) + ".status_code")
+			logger.debug("Error page for " + config->get("error_page." + util::itos(i) + ".status_code")
 				+ ": " + config->get("error_page." + util::itos(i) + ".path"));
 		} catch (const char *message) { // TODO control errors properly
 			logger.error(message);
@@ -92,7 +92,7 @@ void Server::addErrorPages(Config *config) {
 		try {
 			int status = util::stoi(config->get("error_page.status_code"));
 			error_pages[status] = config->get("error_page.path");
-			logger.log("error_page for " + config->get("error_page.status_code")
+			logger.debug("Error page for " + config->get("error_page.status_code")
 				+ ": " + config->get("error_page.path"));
 		} catch (const char *message) {
 			logger.error(message);
@@ -112,6 +112,7 @@ void Server::addLocations(Config *config) {
 		}
 		loc->setRoot(config->get("location." + util::itos(i) + ".root"));
 		loc->setDirectoryList(config->get("location." + util::itos(i) + ".directory_listing"));
+		loc->setCgiExtension(config->get("location." + util::itos(i) + ".cgi"));
 		// Add indexes
 		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".index"); idx++) {
 			loc->addIndex(config->get("location." + util::itos(i) + ".index." + util::itos(idx)));
@@ -137,6 +138,7 @@ void Server::addLocations(Config *config) {
 		}
 		loc->setRoot(config->get("location.root"));
 		loc->setDirectoryList(config->get("location.directory_listing"));
+		loc->setCgiExtension(config->get("location.cgi"));
 		// Add indexes
 		for (int idx = 0; idx < config->key_size("location.index"); idx++) {
 			loc->addIndex(config->get("location.index." + util::itos(idx)));
@@ -151,6 +153,10 @@ void Server::addLocations(Config *config) {
 			loc->addMethod(config->get("location.allow_method"));
 		_locations.push_back(loc);
 	}
+	// No location in config
+	if (config->key_size("location") == -1) {
+		_locations.push_back(new Location());
+	}
 }
 
 std::vector<Listener> *Server::getListeners() { return &listeners; }
@@ -163,7 +169,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 	if (bufferstr.empty()) {
 		response = Response(400);
 		logger.debug("Empty request");
-	} else if (bufferstr.find('\r') == std::string::npos) { // TODO ??
+	} else if (bufferstr.find('\r') == std::string::npos) {
 		response = Response(400);
 		logger.debug("Invalid request");
 	} else {
@@ -198,7 +204,7 @@ Response Server::getResponse(const std::string &bufferstr) {
 
 Response Server::handle_request(Request request) {
 
-	// logger.log("Request: " + request.getMethod() + " " + request.getPath(), 9);
+	logger.log("Request: " + request.getMethod() + " " + request.getPath());
 
 	Location *loc = getLocation(request);
 	Response response;
@@ -225,7 +231,7 @@ Response Server::handle_request(Request request) {
 
 
 	response.addHeader("Connection", "close");
-	response.addHeader("Server", "webserver");
+	response.addHeader("Server", name);
 	//response.addHeader("Date", util::datetime("%a, %d %b %Y %H:%M:%S %Z"));
 
 	return response;
@@ -262,41 +268,6 @@ std::string Server::defaultErrorPage(Response &response) {
 	return page.str();
 }
 
-/*
-const std::string &Server::getRootPath() const {
-	return root_path;
-}
-
-void Server::setRootPath(const std::string &rootPath) {
-    if (rootPath.empty()) {
-        // logger.error("Root path cannot be empty");
-        return;
-    } else if (rootPath[rootPath.length() - 1] != '/') {
-        // logger.error("Root path must end with a slash");
-        return;
-    } else if (rootPath[0] != '/') {
-        std::string absolutePathCwd = std::string(getcwd(NULL, 0));
-        root_path = util::combine_path(absolutePathCwd, rootPath, true);
-        return;
-    }
-	root_path = rootPath;
-}
-
-*/
-/*
-void Server::addRoute(const Route& route) {
-	this->routes[route.getPath()] = route;
-}
-
-void Server::setErrorPage(int status, const std::string& path) {
-	this->routes["*"].setErrorPage(status, path);
-}
-
-void Server::setIndex(const std::string& index) {
-	this->routes["*"].setIndex(index);
-}
-*/
-
 Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
 	
@@ -304,19 +275,16 @@ Response Server::handle_get(const Request& request, Location *loc) {
 	std::string file_path = loc->getRoot() + "/" + aux;
 
 	logger.debug("File path: " + file_path);
-	logger.debug("request path: " + request.getResource());
 	
 	//First we check if it is a directory or a file
 	if(file_path[file_path.size() - 1] == '/')
 	{
 		std::string absolute_path = "";
-		std::cout<<"Directory"<<std::endl;
 		std::vector<std::string>::iterator it;
 	
 		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
 		{
 			absolute_path = file_path + (*it);
-			std::cout<<absolute_path<<std::endl;
 			//We check if file exists
 			std::ifstream file(absolute_path.c_str());
 			if (file.good())
@@ -374,7 +342,6 @@ Response Server::handle_get(const Request& request, Location *loc) {
 	//if it doesnt pass through if, then comes here, it means target is a file
 	else
 	{
-		std::cout<<"File"<<std::endl;
 		//We check if file exists
 		std::ifstream file(file_path.c_str());
 		if (!file.good()) {
@@ -439,8 +406,9 @@ Response Server::handle_post(const Request& request, Location *loc) {
 	std::string aux = request.getResource().substr(loc->getLocation().size());
 	std::string file_path = loc->getRoot() + "/" + aux;
 	std::string file_content = request.getBody();
+	std::string extension = util::get_extension(aux);
 
-	if (cgi_path.size()) {
+	if (cgi_path.size() && loc->getCgiExtension().size() && extension == loc->getCgiExtension()) {
 		file_content = executeCgi(request, cgi_path, file_content);
 		// Quito los headers del cgi_tester
 		if (file_content.find("\r\n\r\n") + 4 < file_content.size()) {
@@ -459,7 +427,6 @@ Response Server::handle_delete(const Request& request, Location *loc) {
 	std::string file_path = loc->getRoot() + "/" + aux;
 
 	logger.debug("File path: " + file_path);
-	logger.debug("request path: " + request.getResource());
 
 	if(file_path[file_path.size() - 1] == '/')
 		return response.setStatusCode(400);
@@ -499,7 +466,6 @@ Response Server::handle_put(Request& request, Location *loc) {
 	std::string file_path = loc->getRoot() + "/" + aux;
 
 	logger.debug("File path: " + file_path);
-	logger.debug("request path: " + request.getResource());
 	
 	//Now we check if what we have received is a file or directory
 	if(file_path[file_path.size() - 1] != '/')
@@ -508,7 +474,6 @@ Response Server::handle_put(Request& request, Location *loc) {
 		//Making directory if not exists
 		std::string directory = file_path.substr(0, file_path.rfind("/"));
 		directory = directory + "/";
-		std::cout<<"Directory: "<<directory<<std::endl;
 		std::string aux_directory = "";
 		unsigned long pos;
 		pos = 0;

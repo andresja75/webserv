@@ -11,6 +11,7 @@ namespace util {
     std::string itos(int n);
     int hex_str_to_dec(const std::string &str);
     void remove_whitespaces(std::string &str);
+    std::string get_extension(const std::string &str);
 }
 
 #endif

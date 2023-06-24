@@ -4,6 +4,11 @@
 //Class Location
 //Constructors and destructor of Location class
 
+Location::Location() :_location("/"), _root(".")
+{
+	this->_allow_methods.push_back("GET");
+}
+
 Location::Location(std::string location)
 	:_location(location), _root("./")
 {
@@ -28,6 +33,10 @@ void Location::setDirectoryList(std::string listing) {
 		this->_directory_listing = true;
 	else
 		this->_directory_listing = false;
+}
+
+void Location::setCgiExtension(std::string cgi) {
+	this->_cgi_extension = cgi;
 }
 
 //This method introduces the specified index in the vector
@@ -106,6 +115,8 @@ std::string Location::getRoot(void) const
 {
 	return this->_root;
 }
+
+std::string Location::getCgiExtension(void) const { return this->_cgi_extension; }
 
 //This function checks if there is a file for a given status code
 bool Location::checkErrorFile(unsigned int status_code)
