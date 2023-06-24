@@ -22,6 +22,16 @@ static void setup_timer(long seconds) {
     setitimer(ITIMER_REAL, &timer, NULL);
 }
 
+static void cancel_timer() {
+    struct itimerval timer;
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 0;
+    // Not repeat
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 0;
+    setitimer(ITIMER_REAL, &timer, NULL);
+}
+
 static char **getEnv(const Request &request) {
     const std::map<std::string, std::string> *headers = request.getHeaders();
     char **env = new char*[4 + headers->size()];
@@ -102,6 +112,8 @@ std::string executeCgi(const Request &request, const std::string &cgiBinPath, st
     {
         setup_timer(CGI_TIMELIMIT);
         waitpid(-1, NULL, 0);
+        cancel_timer();
+
 
         close(fdin);
         close(fdout);
