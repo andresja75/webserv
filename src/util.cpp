@@ -80,3 +80,24 @@ std::string util::getDate() {
     strftime(date, 80, "%a, %d %b %Y %H:%M:%S %Z", ltm);
     return std::string(date);
 }
+
+bool util::isDir(std::string path) {
+    struct stat s;
+    if (stat(path.c_str(), &s) == 0 && (s.st_mode & S_IFDIR))
+        return true;
+    return false;
+}
+
+std::string util::joinPaths(std::string root, std::string path) {
+    std::string join = root;
+    if (!path.size())
+        return root;
+
+    if (join[join.size() - 1] != '/')
+        join += "/";
+    if (path[0] == '/')
+        join += path.substr(1);
+    else
+        join += path;
+    return join;
+}

@@ -3,6 +3,7 @@ server:
   name: serverOne
   cgi_path: cgi_tester
   max_request_size: 2500
+  timeout: 30
   error_page:
     path: ./errors/error.html
     status_code: 404
@@ -33,7 +34,29 @@ server:
 
 server:
   root: path/YoupiBanane/
-  name: serverTwo
+  name: testy
+  cgi_path: cgi_tester
   listen:
     host: 127.0.0.1
     port: 8000
+  location:
+    route: /
+    root: ./path/YoupiBanane
+    index: index.html
+    allow_method: GET
+  location:
+    route: /put_test/
+    root: ./path/YoupiBanane/put_test
+    allow_method: PUT
+  location:
+    route: /directory/
+    root: ./path/YoupiBanane
+    allow_method: GET
+    allow_method: POST
+    index: youpi.bad_extension
+    cgi: bla
+  location:
+    route: /post_body/
+    root: ./path/YoupiBanane
+    allow_method: POST
+    max_body_size: 100

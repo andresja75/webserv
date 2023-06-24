@@ -30,9 +30,12 @@ private:
 	std::string root_path;
 	std::string cgi_path;
 	std::string max_request_size;
+	std::string timeout;
 
 	Response handle_request(Request buffer);
 	Location* getLocation(const Request &request);
+	std::string get_file_path(const Request& request, Location *loc);
+	std::string defaultErrorPage(Response &response);
 
 public:
 
@@ -46,6 +49,7 @@ public:
 	std::vector<Listener> *getListeners();
 	std::vector<Connection *> *getConnections();
 	std::string &getMaxSize();
+	std::string &getTimeout();
 
 	void setRootPath(const std::string &rootPath);
 	void setErrorPage(int status, const std::string& path);
@@ -56,14 +60,11 @@ public:
 	void addLocations(Config *config);
 
 	void putErrorPage(Response &response);
-	std::string defaultErrorPage(Response &response);
 
 	Response handle_get(const Request& request, Location *loc);
 	Response handle_post(const Request& request, Location *loc);
 	Response handle_delete(const Request& request, Location *loc);
 	Response handle_put(Request& request, Location *loc);
-
-	//std::string getCgiPath(const std::string &file_path);
 };
 
 #endif

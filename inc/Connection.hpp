@@ -11,14 +11,14 @@
 # include "util.hpp"
 
 # define READ_BUFFER_SIZE 1024
-# define TIMEOUT 30
 
 class Connection
 {
 public:
     Connection(int socket);
-    Connection(int socket, const std::string &max_size);
-    Connection(int socket, const std::string &max_size, struct sockaddr_in address);
+    Connection(int socket, const std::string &max_size, const std::string &timeout);
+    Connection(int socket, const std::string &max_size,
+            const std::string &timeout, struct sockaddr_in address);
 
 private:
     Connection();
@@ -30,6 +30,7 @@ private:
     size_t send_pos;
     bool finish_request;
     int _max_request_size;
+    int _time_out;
     time_t init;
 
 public:

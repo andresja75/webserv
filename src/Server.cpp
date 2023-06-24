@@ -32,6 +32,7 @@ Server::Server(Config *config) {
 	this->root_path = config->get("root");
 	this->cgi_path = config->get("cgi_path");
 	this->max_request_size = config->get("max_request_size");
+	this->timeout = config->get("timeout");
 	addListeners(config);
 	if (listeners.size() == 0)
 		throw "Cannot init server because there is no listener.";
@@ -85,6 +86,7 @@ void Server::addLocations(Config *config) {
 		loc->setRoot((*it)->get("root"));
 		loc->setDirectoryList((*it)->get("directory_listing"));
 		loc->setCgiExtension((*it)->get("cgi"));
+		loc->setMaxBodySize((*it)->get("max_body_size"));
 		// Add indexes
 		for (int idx = 0; idx < (*it)->key_size("index"); idx++) {
 			loc->addIndex((*it)->get("index." + util::itos(idx)));
@@ -108,6 +110,7 @@ void Server::addLocations(Config *config) {
 std::vector<Listener> *Server::getListeners() { return &listeners; }
 std::vector<Connection *> *Server::getConnections() { return &connections; }
 std::string &Server::getMaxSize() { return max_request_size; }
+std::string &Server::getTimeout() { return timeout; }
 
 Response Server::getResponse(const std::string &bufferstr) {
 
@@ -218,23 +221,29 @@ std::string Server::defaultErrorPage(Response &response) {
 	return page.str();
 }
 
+std::string Server::get_file_path(const Request& request, Location *loc) {
+	int len = loc->getLocation().size();
+	if (request.getResource().size() < loc->getLocation().size())
+		len--;
+	std::string aux = request.getResource().substr(len);
+	return util::joinPaths(loc->getRoot(), aux);
+}
+
 Response Server::handle_get(const Request& request, Location *loc) {
 	Response response;
-	
-	std::string aux = request.getResource().substr(loc->getLocation().size());
-	std::string file_path = loc->getRoot() + "/" + aux;
+	std::string file_path = get_file_path(request, loc);
 
 	logger.debug("File path: " + file_path);
 	
 	//First we check if it is a directory or a file
-	if(file_path[file_path.size() - 1] == '/')
+	if(util::isDir(file_path))
 	{
 		std::string absolute_path = "";
 		std::vector<std::string>::iterator it;
 	
 		for(it = loc->getIndexBegin(); it != loc->getIndexEnd(); it++)
 		{
-			absolute_path = file_path + (*it);
+			absolute_path = util::joinPaths(file_path, (*it));
 			//We check if file exists
 			std::ifstream file(absolute_path.c_str());
 			if (file.good())
@@ -295,9 +304,12 @@ Response Server::handle_get(const Request& request, Location *loc) {
 
 Response Server::handle_post(const Request& request, Location *loc) {
 	Response response;
-	std::string aux = request.getResource().substr(loc->getLocation().size());
-	std::string file_path = loc->getRoot() + "/" + aux;
+	std::string file_path = get_file_path(request, loc);
 	std::string file_content = request.getBody();
+	if (loc->getMaxBodySize() > 0 && (int)file_content.size() > loc->getMaxBodySize()) {
+		response.setStatusCode(413);
+		return response;
+	}
 
 	if (cgi_path.size() && loc->getCgiExtension().size()
 		&& util::get_extension(file_path) == loc->getCgiExtension()) {
@@ -314,13 +326,11 @@ Response Server::handle_post(const Request& request, Location *loc) {
 //This function handle delete verb
 Response Server::handle_delete(const Request& request, Location *loc) {
 	Response response;
-
-	std::string aux = request.getResource().substr(loc->getLocation().size());
-	std::string file_path = loc->getRoot() + "/" + aux;
+	std::string file_path = get_file_path(request, loc);
 
 	logger.debug("File path: " + file_path);
 
-	if(file_path[file_path.size() - 1] == '/')
+	if(util::isDir(file_path))
 		return response.setStatusCode(400);
 	
 	if(access(file_path.c_str(), F_OK) == 0)
@@ -352,13 +362,12 @@ Response Server::handle_delete(const Request& request, Location *loc) {
 //This function handle put verb
 Response Server::handle_put(Request& request, Location *loc) {
 	Response response(201);
-	std::string aux = request.getResource().substr(loc->getLocation().size());
-	std::string file_path = loc->getRoot() + "/" + aux;
+	std::string file_path = get_file_path(request, loc);
 
 	logger.debug("File path: " + file_path);
 	
 	//Now we check if what we have received is a file or directory
-	if(file_path[file_path.size() - 1] != '/')
+	if(!util::isDir(file_path))
 	{
 		//If it reach this point is a file
 		//Making directory if not exists
@@ -424,6 +433,7 @@ Location* Server::getLocation(const Request& request)
 {
 	std::string file_path = request.getResource();
 	std::string aux = "";
+	std::string location;
 	Location *l;
 	unsigned long len;
 	unsigned long coincidence;
@@ -433,20 +443,20 @@ Location* Server::getLocation(const Request& request)
 	for(std::vector<Location *>::iterator it = this->_locations.begin();
 			it != this->_locations.end(); it++)
 	{
-		len = (*it)->getLocation().size();
+		location = (*it)->getLocation();
+		len = location.size();
+		if (location[len - 1] == '/') {
+			len--;
+			location = location.substr(0, len);
+		}
 		aux = file_path.substr(0, len);
 
-		if((*it)->getLocation().compare(aux) == 0)
+		if(location.compare(aux) == 0)
 		{
-			if(l == NULL)
+			if(l == NULL || len > coincidence)
 			{
 				coincidence = len;
 				l = (*it);
-			}
-			if(len > coincidence)
-			{
-				l = (*it);
-				coincidence = len;
 			}
 		}
 	}

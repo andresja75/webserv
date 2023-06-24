@@ -6,16 +6,18 @@ Connection::Connection(int socket)
 	init = time(0);
 }
 
-Connection::Connection(int socket, const std::string &max_size)
+Connection::Connection(int socket, const std::string &max_size, const std::string &timeout)
 	: _socket(socket), send_pos(0), finish_request(false), index(-1) {
 	_max_request_size = util::stoi(max_size);
+	_time_out = util::stoi(timeout);
 	init = time(0);
 }
 
-Connection::Connection(int socket, const std::string &max_size, struct sockaddr_in address)
+Connection::Connection(int socket, const std::string &max_size, const std::string &timeout, struct sockaddr_in address)
 	: _socket(socket), _address(address), send_pos(0), finish_request(false),
 	index(-1) {
 	_max_request_size = util::stoi(max_size);
+	_time_out = util::stoi(timeout);
 	init = time(0);
 }
 
@@ -32,7 +34,7 @@ void Connection::setResponse(std::string resp) {
 }
 
 bool Connection::checkTimeout() {
-	if (time(0) > init + TIMEOUT) {
+	if (_time_out && time(0) > init + _time_out) {
 		close(_socket);
 		return true;
 	}

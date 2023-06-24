@@ -8,6 +8,7 @@ server:
   name: serverOne
   cgi_path: cgi_tester
   max_request_size: 2500
+  timeout: 30
   error_page:
     path: error.html
     status_code: 404
@@ -24,6 +25,7 @@ server:
     allow_method: GET
     allow_method: PUT
     directory_listing: true
+    max_body_size: 100
     cgi: bla
   location:
     route: /direc/
@@ -48,7 +50,8 @@ server:
   - root: the default root directory of the server
   - name: the name of the server
   - cgi_path: the path to the executable
-  - max_request_size: maximum size of the request that is allowed
+  - max_request_size: maximum size of the request that is allowed (better use max_body_size)
+  - timeout: seconds of timeout of connection
   - error_page:
     - path: the path to the error page
     - status_code: the status code of the error
@@ -62,3 +65,4 @@ server:
     - allow_method: methods allows in the location
     - directory_listing: 'true' or 'on' to activate the listing of a directory requested
     - cgi: extension of files to execute the cgi
+    - max_body_size: maximum size of body of request

@@ -90,7 +90,8 @@ int Cluster::checkListeners(struct pollfd *fds) {
                     logger.error("Failed to set socket to non-blocking");
                     return -1;
                 }
-                connections->push_back(new Connection(new_socket, _servers[i]->getMaxSize(), (*listeners)[n].getClientAddress()));
+                connections->push_back(new Connection(new_socket, _servers[i]->getMaxSize(),
+                    _servers[i]->getTimeout(), (*listeners)[n].getClientAddress()));
             }
         }
     }

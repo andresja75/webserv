@@ -39,6 +39,10 @@ void Location::setCgiExtension(std::string cgi) {
 	this->_cgi_extension = cgi;
 }
 
+void Location::setMaxBodySize(std::string max_body) {
+	this->_max_body_size = util::stoi(max_body);
+}
+
 //This method introduces the specified index in the vector
 bool Location::addIndex(std::string index)
 {
@@ -117,6 +121,7 @@ std::string Location::getRoot(void) const
 }
 
 std::string Location::getCgiExtension(void) const { return this->_cgi_extension; }
+int Location::getMaxBodySize(void) const { return this->_max_body_size; }
 
 //This function checks if there is a file for a given status code
 bool Location::checkErrorFile(unsigned int status_code)
