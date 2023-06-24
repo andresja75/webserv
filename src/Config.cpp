@@ -178,3 +178,20 @@ int Config::key_size(std::string key) {
 		i++;
 	return i;
 }
+
+std::vector<Config*> Config::get_list(std::string key) {
+	std::vector<Config*> list;
+	Config *that = get_config(key);
+	if (!that)
+		return list;
+
+	int i = 0;
+	while (that->_config.find(util::itos(i)) != that->_config.end()) {
+		list.push_back(&that->_config.at(util::itos(i)));
+		i++;
+	}
+	if (i == 0) {
+		list.push_back(that);
+	}
+	return list;
+}

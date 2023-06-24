@@ -52,6 +52,12 @@ public:
      * Return -1 if there is no key
     */
     int key_size(std::string key);
+
+    /**
+     * Return a list of all Configs in that key
+     * get_keys("server") => [Config<server0>, Config<server1>]
+    */
+    std::vector<Config*> get_list(std::string key);
 };
 
 #endif

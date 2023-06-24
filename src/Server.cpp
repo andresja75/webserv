@@ -41,30 +41,16 @@ Server::Server(Config *config) {
 }
 
 void Server::addListeners(Config *config) {
-	// Many listeners
-	for (int i = 0; i < config->key_size("listen") && i < MAX_CONNECTION; i++) {
+	std::vector<Config*> confs = config->get_list("listen");
+	std::vector<Config*>::iterator it;
+	for (it = confs.begin(); it != confs.end() && listeners.size() < MAX_CONNECTION; it++) {
 		try {
 			Listener listener(
-				config->get("listen." + util::itos(i) + ".host"),
-				util::stoi(config->get("listen." + util::itos(i) + ".port"))
+				(*it)->get("host"),
+				util::stoi((*it)->get("port"))
 			);
 			listeners.push_back(listener);
-			logger.log("Listen on " + config->get("listen." + util::itos(i) + ".host")
-				+ ":" + config->get("listen." + util::itos(i) + ".port"));
-		} catch (const char *message) {
-			logger.error(message);
-		}
-	}
-	// Only one listener
-	if (config->key_size("listen") == 0) {
-		try {
-			Listener listener(
-				config->get("listen.host"),
-				util::stoi(config->get("listen.port"))
-			);
-			listeners.push_back(listener);
-			logger.log("Listen on " + config->get("listen.host")
-				+ ":" + config->get("listen.port"));
+			logger.log("Listen on " + (*it)->get("host") + ":" + (*it)->get("port"));
 		} catch (const char *message) {
 			logger.error(message);
 		}
@@ -72,81 +58,45 @@ void Server::addListeners(Config *config) {
 }
 
 void Server::addErrorPages(Config *config) {
-	// Many errorPages
-	for (int i = 0; i < config->key_size("error_page") && i < MAX_CONNECTION; i++) {
-		int status = util::stoi(config->get("error_page." + util::itos(i) + ".status_code"));
+	std::vector<Config*> confs = config->get_list("error_page");
+	std::vector<Config*>::iterator it;
+	for (it = confs.begin(); it != confs.end(); it++) {
+		int status = util::stoi((*it)->get("status_code"));
 		if (status < 0) {
 			logger.error("Bad status_code for error_page");
 			continue;
 		}
-		error_pages[status] = config->get("error_page." + util::itos(i) + ".path");
-		logger.debug("Error page for " + util::itos(status)
-			+ ": " + config->get("error_page." + util::itos(i) + ".path"));
-	}
-	// Only one errorPage
-	if (config->key_size("error_page") == 0) {
-		int status = util::stoi(config->get("error_page.status_code"));
-		if (status < 0) {
-			logger.error("Bad status_code for error_page");
-			return;
-		}
-		error_pages[status] = config->get("error_page.path");
-		logger.debug("Error page for " + util::itos(status)
-			+ ": " + config->get("error_page.path"));
+		error_pages[status] = (*it)->get("path");
+		logger.debug("Error page for " + util::itos(status) + ": " + (*it)->get("path"));
 	}
 }
 
 void Server::addLocations(Config *config) {
-	// Many locations
-	for (int i = 0; i < config->key_size("location"); i++) {
+	std::vector<Config*> confs = config->get_list("location");
+	std::vector<Config*>::iterator it;
+	for (it = confs.begin(); it != confs.end(); it++) {
 		Location *loc;
 		try {
-			loc = new Location(config->get("location." + util::itos(i) + ".route"));
+			loc = new Location((*it)->get("route"));
 		} catch (const char *message) {
 			logger.error(message);
 			continue;
 		}
-		loc->setRoot(config->get("location." + util::itos(i) + ".root"));
-		loc->setDirectoryList(config->get("location." + util::itos(i) + ".directory_listing"));
-		loc->setCgiExtension(config->get("location." + util::itos(i) + ".cgi"));
+		loc->setRoot((*it)->get("root"));
+		loc->setDirectoryList((*it)->get("directory_listing"));
+		loc->setCgiExtension((*it)->get("cgi"));
 		// Add indexes
-		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".index"); idx++) {
-			loc->addIndex(config->get("location." + util::itos(i) + ".index." + util::itos(idx)));
+		for (int idx = 0; idx < (*it)->key_size("index"); idx++) {
+			loc->addIndex((*it)->get("index." + util::itos(idx)));
 		}
-		if (config->key_size("location." + util::itos(i) + ".index") == 0)
-			loc->addIndex(config->get("location." + util::itos(i) + ".index"));
+		if ((*it)->key_size("index") == 0)
+			loc->addIndex((*it)->get("index"));
 		// Add methods
-		for (int idx = 0; idx < config->key_size("location." + util::itos(i) + ".allow_method"); idx++) {
-			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method." + util::itos(idx)));
+		for (int idx = 0; idx < (*it)->key_size("allow_method"); idx++) {
+			loc->addMethod((*it)->get("allow_method." + util::itos(idx)));
 		}
-		if (config->key_size("location." + util::itos(i) + ".allow_method") == 0)
-			loc->addMethod(config->get("location." + util::itos(i) + ".allow_method"));
-		_locations.push_back(loc);
-	}
-	// Only one location
-	if (config->key_size("location") == 0) {
-		Location *loc;
-		try {
-			loc = new Location(config->get("location.route"));
-		} catch (const char *message) {
-			logger.error(message);
-			return;
-		}
-		loc->setRoot(config->get("location.root"));
-		loc->setDirectoryList(config->get("location.directory_listing"));
-		loc->setCgiExtension(config->get("location.cgi"));
-		// Add indexes
-		for (int idx = 0; idx < config->key_size("location.index"); idx++) {
-			loc->addIndex(config->get("location.index." + util::itos(idx)));
-		}
-		if (config->key_size("location.index") == 0)
-			loc->addIndex(config->get("location.index"));
-		// Add methods
-		for (int idx = 0; idx < config->key_size("location.allow_method"); idx++) {
-			loc->addMethod(config->get("location.allow_method." + util::itos(idx)));
-		}
-		if (config->key_size("location.allow_method") == 0)
-			loc->addMethod(config->get("location.allow_method"));
+		if ((*it)->key_size("allow_method") == 0)
+			loc->addMethod((*it)->get("allow_method"));
 		_locations.push_back(loc);
 	}
 	// No location in config
