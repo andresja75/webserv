@@ -1,7 +1,3 @@
-#include <sys/fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h> 
 #include "../inc/Server.hpp"
 
 Server::Server() {
@@ -78,25 +74,25 @@ void Server::addListeners(Config *config) {
 void Server::addErrorPages(Config *config) {
 	// Many errorPages
 	for (int i = 0; i < config->key_size("error_page") && i < MAX_CONNECTION; i++) {
-		try {
-			int status = util::stoi(config->get("error_page." + util::itos(i) + ".status_code"));
-			error_pages[status] = config->get("error_page." + util::itos(i) + ".path");
-			logger.debug("Error page for " + config->get("error_page." + util::itos(i) + ".status_code")
-				+ ": " + config->get("error_page." + util::itos(i) + ".path"));
-		} catch (const char *message) { // TODO control errors properly
-			logger.error(message);
+		int status = util::stoi(config->get("error_page." + util::itos(i) + ".status_code"));
+		if (status < 0) {
+			logger.error("Bad status_code for error_page");
+			continue;
 		}
+		error_pages[status] = config->get("error_page." + util::itos(i) + ".path");
+		logger.debug("Error page for " + util::itos(status)
+			+ ": " + config->get("error_page." + util::itos(i) + ".path"));
 	}
 	// Only one errorPage
 	if (config->key_size("error_page") == 0) {
-		try {
-			int status = util::stoi(config->get("error_page.status_code"));
-			error_pages[status] = config->get("error_page.path");
-			logger.debug("Error page for " + config->get("error_page.status_code")
-				+ ": " + config->get("error_page.path"));
-		} catch (const char *message) {
-			logger.error(message);
+		int status = util::stoi(config->get("error_page.status_code"));
+		if (status < 0) {
+			logger.error("Bad status_code for error_page");
+			return;
 		}
+		error_pages[status] = config->get("error_page.path");
+		logger.debug("Error page for " + util::itos(status)
+			+ ": " + config->get("error_page.path"));
 	}
 }
 
@@ -292,6 +288,7 @@ Response Server::handle_get(const Request& request, Location *loc) {
 			absolute_path = "";
 		}
 		
+		//We check if iterator is pointing end, meaning file could not be found
 		if(it != loc->getIndexEnd())
 		{
 			//if exists we introduce the content in the body
@@ -304,38 +301,13 @@ Response Server::handle_get(const Request& request, Location *loc) {
 			}
 			response.setBody(file_content);
 		}
-		//We check if iterator is pointing end, meaning file could not be found
 		else if(loc->getDirectoryList() == true)
 		{
-			std::string body = "<!DOCTYPE html>\n"
-								"<html>\n"
-									"<head>\n"
-										"<title>Directories</title>\n"
-									"</head>\n"
-									"<body>\n"
-										"<ul>\n";
-			DIR *d;
-			struct dirent *dir;
-
-			d = opendir(file_path.c_str());
-			while((dir = readdir(d)) != NULL)
-			{
-				std::string file = "";
-				file = dir->d_name;
-				if(dir->d_type == DT_REG)
-					body += ("<li><a href=\"" + file + "\">" + file + "</a></li>\n");
-				else	
-					body += ("<li><a href=\"" + file + "/\">" + file + "/</a></li>\n");
-			}
-			body += "</ul>\n"
-					"</body>\n"
-					"</html>";
+			std::string body = util::getDirectoryList(file_path);
 			response.setBody(body);
 			return response;
-
 		}else
 		{	
-			// logger.error("File not found");
 			return Response(404);	
 		}
 	}
@@ -345,7 +317,6 @@ Response Server::handle_get(const Request& request, Location *loc) {
 		//We check if file exists
 		std::ifstream file(file_path.c_str());
 		if (!file.good()) {
-			// logger.error("File not found");
 			return Response(404);
 		}
 
@@ -355,49 +326,16 @@ Response Server::handle_get(const Request& request, Location *loc) {
 		while (std::getline(file, line, '\n')) {
 			file_content += line + "\n";
 		}
+		if (cgi_path.size() && loc->getCgiExtension().size()
+			&& util::get_extension(file_path) == loc->getCgiExtension()) {
+			file_content = executeCgi(request, cgi_path, file_content);
+			// Quito los headers del cgi_tester
+			if (file_content.find("\r\n\r\n") + 4 < file_content.size()) {
+				file_content = file_content.substr(file_content.find("\r\n\r\n") + 4);
+			}
+		}
 		response.setBody(file_content);
 	}
-/*
-	if (file_path.find(getRootPath()) != 0) {
-		// logger.error("Invalid path");
-		return Response(403);
-	}
-	struct stat statbuf = {};
-	if (stat(file_path.c_str(), &statbuf) != 0) {
-		// logger.error("File not found");
-		return Response(404);
-	}
-	if (S_ISDIR(statbuf.st_mode)) {
-		file_path = util::combine_path(file_path, this->routes["*"].getIndex(), true);
-		// logger.debug("File path if is dir: " + file_path);
-		// logger.debug(this->routes["*"].getIndex());
-	}
-
-	// Check if file exists
-	std::ifstream file(file_path.c_str());
-	if (!file.good()) {
-		// logger.error("File not found");
-		return Response(404);
-	}
-	std::string file_content;
-	std::string line;
-	while (std::getline(file, line, '\n')) {
-		file_content += line + "\n";
-	}
-
-	std::string cgiBinPath = getCgiPath(file_path);
-	if (cgiBinPath.size()) {
-		file_content = util::executeCgi(request, cgiBinPath, file_content);
-		// Quito los headers del cgi_tester
-		if (file_content.find("\r\n\r\n") + 4 < file_content.size()) {
-			file_content = file_content.substr(file_content.find("\r\n\r\n") + 4);
-		}
-	}
-	response.setBody(file_content);
-
-	std::string content_type = MimeTypes::getType(file_path);
-	response.addHeader("Content-Type", content_type);
-*/
 	return response;
 }
 
@@ -406,9 +344,9 @@ Response Server::handle_post(const Request& request, Location *loc) {
 	std::string aux = request.getResource().substr(loc->getLocation().size());
 	std::string file_path = loc->getRoot() + "/" + aux;
 	std::string file_content = request.getBody();
-	std::string extension = util::get_extension(aux);
 
-	if (cgi_path.size() && loc->getCgiExtension().size() && extension == loc->getCgiExtension()) {
+	if (cgi_path.size() && loc->getCgiExtension().size()
+		&& util::get_extension(file_path) == loc->getCgiExtension()) {
 		file_content = executeCgi(request, cgi_path, file_content);
 		// Quito los headers del cgi_tester
 		if (file_content.find("\r\n\r\n") + 4 < file_content.size()) {
@@ -460,8 +398,6 @@ Response Server::handle_delete(const Request& request, Location *loc) {
 //This function handle put verb
 Response Server::handle_put(Request& request, Location *loc) {
 	Response response(201);
-
-
 	std::string aux = request.getResource().substr(loc->getLocation().size());
 	std::string file_path = loc->getRoot() + "/" + aux;
 
@@ -490,8 +426,6 @@ Response Server::handle_put(Request& request, Location *loc) {
 			pos++;
 		}
 			
-
-		
 		//Check if file already exist, if exist then 204 code, if not 201 code
 		if(access(file_path.c_str(), F_OK) == 0)
 			response.setStatusCode(204);
@@ -528,46 +462,9 @@ Response Server::handle_put(Request& request, Location *loc) {
 		//It means we are trying to create a directory
 		response.setStatusCode(400);
 	}
-	/*
 
-
-
-	std::string file_content = request.getBody();
-	if (request.getHeader("Transfer-Encoding").find("chunked") != std::string::npos) {
-		size_t size = 1;
-		int i = 0;
-		while (size) {
-			size_t count = file_content.find("\r\n", i) - i;
-			size = util::hex_str_to_dec(file_content.substr(i, count));
-			size_t start = file_content.find("\r\n", i) + 2;
-			file << file_content.substr(start, size);
-			i = start + size + 2;
-		}
-	} else {
-		file << file_content;
-	}
-	file.close();
-	*/
 	return response;
-
 }
-
-/*
-// Return the path of the cgi binary or an empty string
-std::string Server::getCgiPath(const std::string &file_path) {
-	std::string::size_type n = file_path.rfind(".");
-	if (n == std::string::npos)
-        return "";
-	std::string extension = file_path.substr(n);
-
-	std::map<std::string, Route>::iterator it = routes.begin();
-	for (; it != routes.end(); it++) {
-		if (it->second.getCgiExtension() == extension)
-			return it->second.getCgiBinPath();
-	}
-	return "";
-}
-*/
 
 Location* Server::getLocation(const Request& request)
 {

@@ -4,6 +4,9 @@
 
 #include <string>
 #include <vector>
+#include <sys/fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "Logger.hpp"
 #include "Config.hpp"
 #include "request/Request.hpp"

@@ -45,3 +45,30 @@ std::string util::get_extension(const std::string &str) {
         ext = str.substr(pos + 1);
     return ext;
 }
+
+std::string util::getDirectoryList(std::string file_path) {
+    std::string body = "<!DOCTYPE html>\n"
+                        "<html>\n"
+                            "<head>\n"
+                                "<title>Directories</title>\n"
+                            "</head>\n"
+                            "<body>\n"
+                                "<ul>\n";
+    DIR *d;
+    struct dirent *dir;
+
+    d = opendir(file_path.c_str());
+    while((dir = readdir(d)) != NULL)
+    {
+        std::string file = "";
+        file = dir->d_name;
+        if(dir->d_type == DT_REG)
+            body += ("<li><a href=\"" + file + "\">" + file + "</a></li>\n");
+        else
+            body += ("<li><a href=\"" + file + "/\">" + file + "/</a></li>\n");
+    }
+    body += "</ul>\n"
+            "</body>\n"
+            "</html>";
+    return body;
+}

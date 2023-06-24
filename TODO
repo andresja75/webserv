@@ -1,5 +1,2 @@
 - A request to your server should never hang forever
-- You need at least GET, POST, and DELETE methods.
-- Locations:
-    - Execute CGI based on certain file extension (for example .php).
-    - Make it work with POST and GET methods.
+- POST no comprueba que exista el path, solo que esté en una location que permita POST
