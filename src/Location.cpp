@@ -1,4 +1,3 @@
-
 #include "../inc/Location.hpp"
 
 //Class Location

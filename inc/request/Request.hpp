@@ -59,6 +59,7 @@ class Request
 		std::string getResource(void) const;
 		std::string getProtocol(void) const;
 		std::string getBody(void) const;
+		int getBodySize(void) const;
 };
 
 

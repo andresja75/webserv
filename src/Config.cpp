@@ -29,6 +29,7 @@ void Config::read_file_lines(const char *path) {
 	while (std::getline(infile, line)) {
 		lines.push_back(line);
 	}
+	infile.close();
 	parse_key_values(lines);
 }
 
@@ -151,7 +152,7 @@ std::string Config::get(std::string key) {
 
     t_config::iterator k = _config.find(subkey);
     if (k == _config.end())
-        return ""; // TODO exception?
+        return "";
     return k->second.get(rest);
 }
 

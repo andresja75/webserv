@@ -160,8 +160,9 @@ Response Server::handle_request(Request request) {
 		response.setStatusCode(404);
 	else if(loc->checkMethod(request.getMethod()) == false)
 		response.setStatusCode(405);
-	else
-	{
+	else if (loc->getMaxBodySize() > 0 && request.getBodySize() > loc->getMaxBodySize()) {
+		response.setStatusCode(413);
+	} else {
 		if (request.getMethod() == "GET") {
 			response = handle_get(request, loc);
 		} else if (request.getMethod() == "POST") {
@@ -172,8 +173,8 @@ Response Server::handle_request(Request request) {
 			response = handle_put(request, loc);
 		} else {
 			response.setStatusCode(405);
+		}
 	}
-}
 
 	response.addHeader("Connection", "close");
 	response.addHeader("Server", name);
@@ -246,8 +247,10 @@ Response Server::handle_get(const Request& request, Location *loc) {
 			absolute_path = util::joinPaths(file_path, (*it));
 			//We check if file exists
 			std::ifstream file(absolute_path.c_str());
-			if (file.good())
+			if (file.good()) {
+				file.close();
 				break;
+			}
 			absolute_path = "";
 		}
 		
@@ -262,6 +265,7 @@ Response Server::handle_get(const Request& request, Location *loc) {
 			{
 				file_content += line + "\n";
 			}
+			file.close();
 			response.setBody(file_content);
 		}
 		else if(loc->getDirectoryList() == true)
@@ -289,6 +293,7 @@ Response Server::handle_get(const Request& request, Location *loc) {
 		while (std::getline(file, line, '\n')) {
 			file_content += line + "\n";
 		}
+		file.close();
 		if (cgi_path.size() && loc->getCgiExtension().size()
 			&& util::get_extension(file_path) == loc->getCgiExtension()) {
 			file_content = executeCgi(request, cgi_path, file_content);
@@ -306,10 +311,6 @@ Response Server::handle_post(const Request& request, Location *loc) {
 	Response response;
 	std::string file_path = get_file_path(request, loc);
 	std::string file_content = request.getBody();
-	if (loc->getMaxBodySize() > 0 && (int)file_content.size() > loc->getMaxBodySize()) {
-		response.setStatusCode(413);
-		return response;
-	}
 
 	if (cgi_path.size() && loc->getCgiExtension().size()
 		&& util::get_extension(file_path) == loc->getCgiExtension()) {

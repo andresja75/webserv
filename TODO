@@ -1,2 +1,2 @@
-- A request to your server should never hang forever
-- POST no comprueba que exista el path, solo que esté en una location que permita POST
+- Completar los headers de la respuesta
+- Buscar otro cgi para probar

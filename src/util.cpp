@@ -2,8 +2,10 @@
 
 int util::stoi(std::string str)
 {
-	if (str.size() && !isdigit(str[0]))
-		return -1;
+    if (!str.size())
+        return 0;
+    if (str.size() && !isdigit(str[0]))
+        return -1;
     int num;
     std::stringstream ss;
     ss << str;

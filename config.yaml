@@ -1,7 +1,7 @@
 server:
   root: path/YoupiBanane/
   name: serverOne
-  cgi_path: cgi_tester
+  cgi_path: tests/cgi_tester
   max_request_size: 2500
   timeout: 30
   error_page:
@@ -35,7 +35,7 @@ server:
 server:
   root: path/YoupiBanane/
   name: testy
-  cgi_path: cgi_tester
+  cgi_path: test_ubuntu/ubuntu_cgi_tester
   listen:
     host: 127.0.0.1
     port: 8000

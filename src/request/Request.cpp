@@ -285,6 +285,28 @@ std::string Request::getBody(void) const
 	return (this->_body);
 }
 
+int Request::getBodySize(void) const {
+	std::string header_encoding = getHeader("Transfer-Encoding");
+	if (header_encoding == "chunked") {
+		int total = 0;
+		size_t size = 1;
+		size_t i = 0;
+		while (size) {
+			size_t count = _body.find("\r\n", i) - i;
+			size = util::hex_str_to_dec(_body.substr(i, count));
+			total += size;
+			size_t start = _body.find("\r\n", i) + 2;
+			i = start + size + 2;
+			if (i > _body.size()) {
+				return -1;
+			}
+		}
+		return total;
+	} else {
+		return _body.size();
+	}
+}
+
 //---------------------------------------------------------------
 //------------------- Class RequestException --------------------
 //Constructors and destructor of Request Exception

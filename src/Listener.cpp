@@ -33,7 +33,7 @@ Listener::Listener(std::string ip, short port, int backlog) : _backlog(backlog),
     if (listen(_socket, _backlog) < 0)
         throw "Failed to listen on socket";
 
-    int flags = fcntl(_socket, F_SETFL, fcntl(_socket, F_GETFL) | O_NONBLOCK);
+    int flags = fcntl(_socket, F_SETFL, O_NONBLOCK);
     if (flags < 0)
         throw "Failed to set socket to non-blocking";
 

@@ -18,7 +18,6 @@ class Response
 		std::map<std::string, std::string> _headers;
 		static std::map<unsigned int, std::string> _message_status_code;
 		unsigned int _status_code;
-		std::string _status_message;
 		std::string _protocol_version;
 		std::string _body;
 		unsigned int _body_length;
@@ -42,7 +41,6 @@ class Response
 
 		//Setters
 		bool setStatusCode(unsigned int status_code);
-		void setStatusMessage(std::string status_message);
 		void setBody(std::string& body);
 		bool addHeader(std::string header_key, std::string header_value);
 

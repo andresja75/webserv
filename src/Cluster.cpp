@@ -85,7 +85,7 @@ int Cluster::checkListeners(struct pollfd *fds) {
                     return -1;
                 }
                 logger.debug("Accepted connection");
-                int flags = fcntl(new_socket, F_SETFL, fcntl(new_socket, F_GETFL) | O_NONBLOCK);
+                int flags = fcntl(new_socket, F_SETFL, O_NONBLOCK);
                 if (flags < 0) {
                     logger.error("Failed to set socket to non-blocking");
                     return -1;

@@ -12,20 +12,12 @@ Response::Response(unsigned int status_code)
 	std::map<unsigned int, std::string>::iterator it = _message_status_code.find(status_code);
 
 	if(it == _message_status_code.end())
-	{
 		this->_status_code = 500;
-		this->_status_message = "Internal Server Error";
-
-	}
-	else
-	{
-		this->_status_message = it->second;
-	}
 }
 
 //Response default constructor
 Response::Response(void)
-	:_status_code(200), _status_message("Ok"), _protocol_version(HTTP_PROTOCOL),
+	:_status_code(200), _protocol_version(HTTP_PROTOCOL),
 	_body(""), _body_length(0) 
 {
 }
@@ -180,7 +172,11 @@ unsigned int Response::getStatusCode(void) const
 //This method returns the status message
 std::string Response::getStatusMessage(void) const
 {
-	return this->_status_message;
+	std::map<unsigned int, std::string>::iterator it = _message_status_code.find(_status_code);
+
+	if(it == _message_status_code.end())
+		return "Unknow status code";
+	return it->second;
 }
 
 //This method returns the protocol version
@@ -237,12 +233,6 @@ bool Response::setStatusCode(unsigned int status_code)
 		return false;
 	this->_status_code = status_code;
 	return true;
-}
-
-//Function to set status message of response
-void Response::setStatusMessage(std::string status_message)
-{
-	this->_status_message = status_message;
 }
 
 //Function to add headers to response
