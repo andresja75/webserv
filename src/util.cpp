@@ -73,11 +73,11 @@ std::string util::getDirectoryList(std::string file_path) {
     return body;
 }
 
-std::string util::getDate() {
+std::string util::getDate(std::string format) {
     time_t now = time(0);
     tm *ltm = localtime(&now);
     char *date = new char[80];
-    strftime(date, 80, "%a, %d %b %Y %H:%M:%S %Z", ltm);
+    strftime(date, 80, format.c_str(), ltm);
     return std::string(date);
 }
 

@@ -16,7 +16,7 @@ namespace util {
     void remove_whitespaces(std::string &str);
     std::string get_extension(const std::string &str);
     std::string getDirectoryList(std::string file_path);
-    std::string getDate();
+    std::string getDate(std::string format="%a, %d %b %Y %H:%M:%S %Z");
     bool isDir(std::string path);
     std::string joinPaths(std::string root, std::string path);
 }

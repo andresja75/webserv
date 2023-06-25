@@ -196,7 +196,7 @@ void Server::putErrorPage(Response &response) {
 	}
 	else {
 		std::stringstream page;
-		std::ifstream file(path);
+		std::ifstream file(path.c_str());
 		if (file.good()) {
 			page << file.rdbuf();
 			file.close();
